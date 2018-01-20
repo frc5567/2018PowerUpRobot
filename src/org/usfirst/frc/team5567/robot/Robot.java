@@ -8,6 +8,7 @@
 package org.usfirst.frc.team5567.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SpeedController;
@@ -28,35 +29,42 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class Robot extends IterativeRobot {
 	//global variables
-	
+
 	//  Declaring drivetrain Speed Controllers
 	final SpeedController frontLeftMotor;
 	final SpeedController frontRightMotor;
 	final SpeedController backLeftMotor;
 	final SpeedController backRightMotor;
-	
+
 	//  Declaring Speed Controller Groups
 	final SpeedControllerGroup leftMotors;
 	final SpeedControllerGroup rightMotors;
-	
+
 	//  Declaring Encoders for drivetrain motor control
 	final Encoder leftEncoder;
 	final Encoder rightEncoder;
-	
+
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
 	final XboxController copilotController;
 
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
-	
+
 	//   Declaring analog Gyro
 	final ADXRS450_Gyro myGyro;
-	
+
 	//  Declaring timer used in auto
 	Timer autoTimer;
+
+	//  Declaring Ultrasonics used in auto
+	Ultrasonic lUltra;
+	Ultrasonic rUltra;
 	
-	
+	//  Declaring Pixy camera used for vision
+	PixyExample myPixy;
+
+
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -66,11 +74,11 @@ public class Robot extends IterativeRobot {
 		backLeftMotor = new VictorSP(1);
 		frontRightMotor = new VictorSP(2);
 		backRightMotor = new VictorSP(3);
-		
+
 		//  Instantiating Speed Controller Groups
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
-		
+
 		//  Instantiating Drivetrain Encoders and assigned ports
 		leftEncoder = new Encoder(6, 7);
 		rightEncoder = new Encoder(8, 9);
@@ -85,26 +93,32 @@ public class Robot extends IterativeRobot {
 		//  Instantiating and calibrating analog gyro
 		myGyro = new ADXRS450_Gyro();
 		myGyro.calibrate();
+
+		//  Instantiating ultrasonics
+		lUltra = new Ultrasonic(1,0);
+		rUltra = new Ultrasonic(3,2);
 		
-		
+		//  Instantiating pixy camera
+		myPixy = new PixyExample();
+
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	@Override
 	public void robotInit() {
-	
-		
-		
-		
-	
+
+
+
+
+
 	}
 
 	/**
@@ -120,7 +134,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-	
+
 		//  Instantiating, reseting, and starting timer used in timer
 		autoTimer = new Timer();
 		autoTimer.reset();
@@ -132,7 +146,14 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		
+
+		//  Auton for testing vision
+		// Prevents the robot from moving if it's too close to the wall
+		if((lUltra.getRangeMM()>150) && rUltra.getRangeMM()>150){
+			// A method that turns the robot to face the target
+			myPixy.centerOnObject(driveTrain);
+		}
+		/*  Commented out for easy of testing auton
 		//  Drives forward when timer is less than 5 seconds
 		if(autoTimer.get() < 5) {
 			driveTrain.arcadeDrive(0.5, 0);
@@ -148,6 +169,7 @@ public class Robot extends IterativeRobot {
 				driveTrain.arcadeDrive(0, 0);
 			}
 		}
+		*/
 	}
 
 	/**
