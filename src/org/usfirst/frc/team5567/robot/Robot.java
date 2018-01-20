@@ -10,6 +10,14 @@ package org.usfirst.frc.team5567.robot;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.VictorSP;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -19,20 +27,84 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
-	private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	//global variables
+	
+	//  Declaring drivetrain Speed Controllers
+	final SpeedController frontLeftMotor;
+	final SpeedController frontRightMotor;
+	final SpeedController backLeftMotor;
+	final SpeedController backRightMotor;
+	
+	//  Declaring Speed Controller Groups
+	final SpeedControllerGroup leftMotors;
+	final SpeedControllerGroup rightMotors;
+	
+	//  Declaring Encoders for drivetrain motor control
+	final Encoder leftEncoder;
+	final Encoder rightEncoder;
+	
+	//  Declaring Xbox controllers for controlling robot
+	final XboxController pilotController;
+	final XboxController copilotController;
 
+	//  Declaring Drivetrain for moving the robot
+	final DifferentialDrive driveTrain;
+	
+	//   Declaring analog Gyro
+	final ADXRS450_Gyro myGyro;
+	
+	//  Declaring timer used in auto
+	Timer autoTimer;
+	
+	
+	/*
+	 * This is our robot's constructor.
+	 */
+	public Robot() {
+		//  Instantiating Speed Controllers and assigned ports
+		frontLeftMotor = new VictorSP(0);
+		backLeftMotor = new VictorSP(1);
+		frontRightMotor = new VictorSP(2);
+		backRightMotor = new VictorSP(3);
+		
+		//  Instantiating Speed Controller Groups
+		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
+		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
+		
+		//  Instantiating Drivetrain Encoders and assigned ports
+		leftEncoder = new Encoder(6, 7);
+		rightEncoder = new Encoder(8, 9);
+
+		//  Instantiating Xbox Controllers
+		pilotController = new XboxController (0);
+		copilotController = new XboxController (1);
+
+		//  Instantiating drivetrain
+		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
+
+		//  Instantiating and calibrating analog gyro
+		myGyro = new ADXRS450_Gyro();
+		myGyro.calibrate();
+		
+		
+	}
+	
+	
+	
+	
+	
+	
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	@Override
 	public void robotInit() {
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+	
+		
+		
+		
+	
 	}
 
 	/**
@@ -48,10 +120,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);
+	
+		//  Instantiating, reseting, and starting timer used in timer
+		autoTimer = new Timer();
+		autoTimer.reset();
+		autoTimer.start();
 	}
 
 	/**
@@ -59,14 +132,21 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
+		
+		//  Drives forward when timer is less than 5 seconds
+		if(autoTimer.get() < 5) {
+			driveTrain.arcadeDrive(0.5, 0);
+		}
+		//stop when timer is after 5 seconds
+		else {
+			driveTrain.arcadeDrive(0, 0);
+			//Rotate using gyro data 180 degrees
+			if(myGyro.getAngle() < 180) {
+				driveTrain.arcadeDrive(0, .5);
+			}
+			else {
+				driveTrain.arcadeDrive(0, 0);
+			}
 		}
 	}
 
