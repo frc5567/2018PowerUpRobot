@@ -1,6 +1,8 @@
 package org.usfirst.frc.team5567.robot;
 
 import org.usfirst.frc.team5567.robot.PixyPacket;
+
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 public class PixyExample {
 
@@ -44,12 +46,13 @@ public class PixyExample {
 			}
 
 			// If the object is in the center
-			if(pkt.x > .48 || pkt.x < .52){
+			else if(pkt.x > .48 || pkt.x < .52){
 
 				// Drives forward
 				driveTrain.arcadeDrive(0.3,0);
 
 			}
+			Timer.delay(.1);
 		}
 
 	}
