@@ -9,10 +9,11 @@ import edu.wpi.first.wpilibj.I2C.Port;
 
 
 public class M_I2C {
+	//	uses the i2c port on the RoboRIO
+	//	uses address 20, must match arduino
+	private static I2C Wire = new I2C(Port.kOnboard, 20);
 
-	private static I2C Wire = new I2C(Port.kOnboard, 4);//uses the i2c port on the RoboRIO
-
-														//uses address 4, must match arduino
+											
 
 	private static final int MAX_BYTES = 32;
 
@@ -47,7 +48,15 @@ public class M_I2C {
 		PixyPacket pkt = new PixyPacket();  //creates a new packet to hold the data 
 
 		if(info[0].equals("none") || info[0].equals("")){//checks to make sure there is data 
-
+			
+			//  Debug prints to see where no data is from
+			if(info[0].equals("none")){
+				System.out.println("The pixy detects no blocks");
+			}
+			else if(info[0].equals("")){
+				System.out.println("No data from arduino");
+			}
+			
 			pkt.x = -1;//the x val will never be -1 so we can text later in code to make sure 
 
 					   //there is data
@@ -76,15 +85,13 @@ public class M_I2C {
 
 		byte[] data = new byte[MAX_BYTES];//create a byte array to hold the incoming data
 
-		Wire.read(4, MAX_BYTES, data);//use address 4 on i2c and store it in data
+		Wire.read(20, MAX_BYTES, data);//use address 20 on i2c and store it in data
 
 		String output = new String(data);//create a string from the byte array
 
 		int pt = output.indexOf((char)255);
 
-		return (String) output.subSequence(0, pt < 0 ? 0 : pt);//im not sure what these last two lines do
-
-															   //sorry :( - not written by Josh. The download had this comment in it already
+		return (String) output.subSequence(0, pt < 0 ? 0 : pt);
 
 	}
 

@@ -43,12 +43,12 @@ public class Robot extends IterativeRobot {
 	final SpeedControllerGroup rightMotors;
 
 	//  Declaring Encoders for drivetrain motor control
-//	final Encoder leftEncoder;
-//	final Encoder rightEncoder;
+	//	final Encoder leftEncoder;
+	//	final Encoder rightEncoder;
 
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
-//	final XboxController copilotController;
+	//	final XboxController copilotController;
 
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
@@ -57,14 +57,14 @@ public class Robot extends IterativeRobot {
 	final ADXRS450_Gyro myGyro;
 
 	//  Declaring timer used in auto
-//	Timer autoTimer;
+	//	Timer autoTimer;
 
 	//  Declaring Ultrasonics used in auto
-//	Ultrasonic lUltra;
-//	Ultrasonic rUltra;
-	
+	Ultrasonic lUltra;
+	Ultrasonic rUltra;
+
 	//  Declaring Pixy camera used for vision
-//	PixyExample myPixy;
+	PixyExample myPixy;
 
 
 	/*
@@ -84,14 +84,14 @@ public class Robot extends IterativeRobot {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-		
+
 		//  Instantiating Drivetrain Encoders and assigned ports
-//		leftEncoder = new Encoder(6, 7);
-//		rightEncoder = new Encoder(8, 9);
-//
-//		//  Instantiating Xbox Controllers
+		//		leftEncoder = new Encoder(6, 7);
+		//		rightEncoder = new Encoder(8, 9);
+		//
+		//		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
-//		copilotController = new XboxController (1);
+		//		copilotController = new XboxController (1);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
@@ -101,11 +101,12 @@ public class Robot extends IterativeRobot {
 		myGyro.calibrate();
 
 		//  Instantiating ultrasonics
-//		lUltra = new Ultrasonic(1,0);
-//		rUltra = new Ultrasonic(3,2);
-		
+		lUltra = new Ultrasonic(1,0);
+		rUltra = new Ultrasonic(3,2);
+		lUltra.setAutomaticMode(true);
+
 		//  Instantiating pixy camera
-//		myPixy = new PixyExample();
+		myPixy = new PixyExample();
 
 	}
 
@@ -122,8 +123,8 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 
 
-//		lUltra.setEnabled(true);
-//		rUltra.setEnabled(true);
+		lUltra.setEnabled(true);
+		rUltra.setEnabled(true);
 
 
 	}
@@ -141,12 +142,12 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-//		lUltra.setAutomaticMode(true);
-//		rUltra.setAutomaticMode(true);
-//		//  Instantiating, reseting, and starting timer used in timer
-//		autoTimer = new Timer();
-//		autoTimer.reset();
-//		autoTimer.start();
+		lUltra.setAutomaticMode(true);
+		rUltra.setAutomaticMode(true);
+		//		//  Instantiating, reseting, and starting timer used in timer
+		//		autoTimer = new Timer();
+		//		autoTimer.reset();
+		//		autoTimer.start();
 	}
 
 	/**
@@ -154,14 +155,15 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
+		System.out.println("Left Range   " + lUltra.getRangeMM() + "    Right Range   " +rUltra.getRangeMM());
 
 		//  Auton for testing vision
-//		// Prevents the robot from moving if it's too close to the wall
-//		if((lUltra.getRangeMM()>150) && rUltra.getRangeMM()>150){
-//			// A method that turns the robot to face the target
-//			myPixy.centerOnObject(driveTrain);
-//			Timer.delay(.05);
-//		}
+		//  Prevents the robot from moving if it's too close to the wall
+		if((lUltra.getRangeMM()>150) && rUltra.getRangeMM()>150){
+			//  A method that turns the robot to face the target
+			myPixy.centerOnObject(driveTrain);
+			Timer.delay(.07);
+		}
 		/*  Commented out for easy of testing auton
 		//  Drives forward when timer is less than 5 seconds
 		if(autoTimer.get() < 5) {
@@ -179,11 +181,12 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		*/
+		 
 	}
 
 	public void teleopInit() {
 	}
-	
+
 	/**
 	 * This function is called periodically during operator control.
 	 */
@@ -192,18 +195,20 @@ public class Robot extends IterativeRobot {
 		driveTrain.tankDrive(-pilotController.getY(Hand.kLeft), -pilotController.getY(Hand.kRight));
 	}
 
-	
+
 	public void testInit(){
 		System.out.println("here");
 	}
-	
+
 	/**
 	 * This function is called periodically during test mode.
 	 */
 	@Override
 	public void testPeriodic() {
-		driveTrain.tankDrive(.75, .75);
-//		System.out.println("gyro:\t "+myGyro.getAngle());
-		Timer.delay(.1);
+//		driveTrain.tankDrive(.75, .75);
+//		//		System.out.println("gyro:\t "+myGyro.getAngle());
+//		Timer.delay(.1);
+		System.out.println("left:\t"+lUltra.getRangeMM());
+		System.out.println("right:\t"+rUltra.getRangeMM());
 	}
 }
