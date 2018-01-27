@@ -25,9 +25,13 @@ public class Robot extends IterativeRobot {
 	int forwardChannel = 0;
 	int reverseChannel = 1;
 	
+	//Sets up the channel for the motors on the crate Grabber on the PWM
+	int leftArmMotor = 8;
+	int rightArmMotor = 9;
+	
 	//  Creates Pneumatic Arm AND initialize with the PCM ports 
 	//  PCM ports set by the forward and reverse channel variables
-	CrateGrabber boxArm = new CrateGrabber(forwardChannel, reverseChannel);
+	CrateGrabber boxArm = new CrateGrabber(forwardChannel, reverseChannel, leftArmMotor, rightArmMotor);
 	
 /*
 	//	Declaring arm wheel speed controllers
