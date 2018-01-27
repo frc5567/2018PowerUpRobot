@@ -36,14 +36,14 @@ public class PixyExample {
 				//	If the Pixy sees the object on the left side of robot, turn left
 				if(pkt.x < .48){
 					System.out.println("Object on left");
-					//driveTrain.arcadeDrive(0, -0.2);
+					driveTrain.arcadeDrive(0, -0.2);
 					Timer.delay(0.05);
 				}
 
 				//	If the Pixy sees the object on the right side of robot, turn right
 				else if(pkt.x > .52){
 					System.out.println("Object on right");
-					//driveTrain.arcadeDrive(0, 0.2);
+					driveTrain.arcadeDrive(0, 0.2);
 					Timer.delay(0.05);
 				}
 
