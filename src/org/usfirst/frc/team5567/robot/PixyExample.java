@@ -75,6 +75,9 @@ public class PixyExample {
 			}
 		}
 		else if(pkt.x == -1){
+			
+			//	Stops the robot if data is lost
+			driveTrain.arcadeDrive(0, 0, false);
 			System.out.println("Data does not exist");
 		}
 	}
