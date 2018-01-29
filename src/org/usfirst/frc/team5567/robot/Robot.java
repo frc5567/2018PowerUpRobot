@@ -158,30 +158,11 @@ public class Robot extends IterativeRobot {
 		System.out.println("Left Range   " + lUltra.getRangeMM() + "    Right Range   " +rUltra.getRangeMM());
 
 		//  Auton for testing vision
-		//  Prevents the robot from moving if it's too close to the wall
-		if((lUltra.getRangeMM()>150) && rUltra.getRangeMM()>150){
-			//  A method that turns the robot to face the target
-			myPixy.centerOnObject(driveTrain);
-			Timer.delay(.07);
-		}
-		/*  Commented out for easy of testing auton
-		//  Drives forward when timer is less than 5 seconds
-		if(autoTimer.get() < 5) {
-			driveTrain.arcadeDrive(0.5, 0);
-		}
-		//stop when timer is after 5 seconds
-		else {
-			driveTrain.arcadeDrive(0, 0);
-			//Rotate using gyro data 180 degrees
-			if(myGyro.getAngle() < 180) {
-				driveTrain.arcadeDrive(0, .5);
-			}
-			else {
-				driveTrain.arcadeDrive(0, 0);
-			}
-		}
-		*/
-		 
+		//  A method that turns the robot to face the target
+		myPixy.centerOnObject(driveTrain);
+		Timer.delay(.07);
+
+
 	}
 
 	public void teleopInit() {
@@ -205,9 +186,9 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
-//		driveTrain.tankDrive(.75, .75);
-//		//		System.out.println("gyro:\t "+myGyro.getAngle());
-//		Timer.delay(.1);
+		//		driveTrain.tankDrive(.75, .75);
+		//		//		System.out.println("gyro:\t "+myGyro.getAngle());
+		//		Timer.delay(.1);
 		System.out.println("left:\t"+lUltra.getRangeMM());
 		System.out.println("right:\t"+rUltra.getRangeMM());
 	}

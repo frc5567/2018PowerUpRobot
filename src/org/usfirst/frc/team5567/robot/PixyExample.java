@@ -58,9 +58,17 @@ public class PixyExample {
 			//	If the object is in the center
 			else if(pkt.x > .48 || pkt.x < .52){
 				System.out.println("Object is in center");
-				//	Drives forward
-				//driveTrain.arcadeDrive(0.3,0);
-				Timer.delay(0.05);
+
+				//	Stops the robot if the area of the target is too great
+				if(pkt.area > 0.4){
+					driveTrain.arcadeDrive(0, 0);
+				}
+
+				else{
+					//	Drives forward
+					driveTrain.arcadeDrive(0.1,0);
+					Timer.delay(0.05);
+				}
 
 				System.out.println("XPos:  " + pkt.x + "  YPos:   " + pkt.y);
 
