@@ -1,78 +1,91 @@
 #include <Wire.h>
-
-//built in class from arduino, strongly suggest looking at it on their website
-//it is not a complicated class
-
 #include <Pixy.h>
 
-//this is provided by the pixy creators, you will have to go to the arduino sketch editor, 
-//click sketch, include library, and import the pixy .zip files
+//  SETUP THE DEVICES
 
-//SETUP THE DEVICES
+//  Plug sda on RoboRIO into 20
+//  Plug scl on RoboRIO into 21
+//  Connect the two grounds
 
-//plug sda on RoboRIO into 20
-//plug scl on RoboRIO into 21
-//connect the two grounds
+//  String to be sent to the robot
+String piOutput = "none";
 
-
-String piOutput = "none";//string to be sent to the robot
-               
-String input = "blank";  //string received from the robot
+// String received from the robot              
+String input = "blank";  
 const String PIXY = "pi";
+
+//  Declares the Pixy
 Pixy pixy;
 
 void setup(){
   Serial.begin(9600);
-  Wire.begin(20);                // join i2c bus with address #20 as a slave device
-  Wire.onReceive(receiveEvent); // Registers a function to be called when a slave device receives a transmission from a master
-  Wire.onRequest(requestEvent); // Register a function to be called when a master requests data from this slave device
+
+  //  Connects i2c bus with address #20 as a slave device
+  Wire.begin(20);
+  
+  //  Registers a function to be called when a slave device receives a transmission from a master                
+  Wire.onReceive(receiveEvent); 
+
+  //  Register a function to be called when a master requests data from this slave device
+  Wire.onRequest(requestEvent);
+
+  //  Initializes the Pixy
   pixy.init();
   Serial.print("Starting");
 }
 
 void loop(){
-  //digitalWrite(52, HIGH);
-  uint16_t blocks = pixy.getBlocks();//use this line to get every available object the pixy sees
-  //^^^not sure what exactly this is for, honestly
+
+  //  Gets every available object from the Pixy
+  uint16_t blocks = pixy.getBlocks();
+  
   int biggest = -1;
   double area = 0, temp;
 
-  //Serial.print("Pre-loop Warning\n");
-  //Serial.print("Number of Blocks\n");
   Serial.print(String(blocks));
   Serial.print("  -  ");
+
+  //  Finds the biggest block sent by the Pixy
   for(int i=0;i<blocks;i++){
-    //if(pixy.blocks[i].signature == 3) //if checking for an object and have more than one "type" or color to choose from
-                         //use this line and choose the signature or "color" you want
+
+    //  Selects the third signature from the Pixy (the Power Cube)
+    if(pixy.blocks[i].signature == 3){
       temp = pixy.blocks[i].width * pixy.blocks[i].height;
       if(temp > area){
         area = temp;
         biggest = i;
       }
-      
-      //that loops finds the biggest object since sometimes the object you are looking for becomes 
-      //broken up into multiple, smaller, objects
   }
+      
+  }
+
+  //  Tells the Rio that the Pixy doesn't see any blocks
   if(!blocks){
-    piOutput = "none"; //if no blocks tell roborio there are none 
-  }else{
-    piOutput = String(pixy.blocks[biggest].x / 319.0);  //turns into a percent of the screen 
-    piOutput += "|";                //inserts a "pipe" so robrio can split the numbers later
-    piOutput += String(pixy.blocks[biggest].y / 199.0); //319 and 199 were, we found, the dimensions of the screen 
+    piOutput = "none";
+  }
+
+  //  Puts the X, Y, and Area in a string as percents. The lines are used for splitting the string
+  else{
+    piOutput = String(pixy.blocks[biggest].x / 319.0);   
+    piOutput += "|";                
+    piOutput += String(pixy.blocks[biggest].y / 199.0); 
     piOutput += "|";          
     piOutput += String(area / 64000); 
     
   }
+  
   Serial.print(piOutput);
   Serial.print("\n");
-  delay(70); //gives time for everything to process
+  delay(70); 
 }
-
-void requestEvent(){//called when RoboRIO request a message from this device
-  Wire.write(piOutput.c_str()); //writes data to the RoboRIO, converts it to string
+//  Called when RoboRIO requests a message from this device
+void requestEvent(){
+  //  Writes data to the RoboRIO as a string
+  Wire.write(piOutput.c_str()); 
   
 }
 
-void receiveEvent(int bytes){//called when RoboRIO "gives" this device a message
+//  Called when RoboRIO "gives" this device a message
+void receiveEvent(int bytes){
 
 }
