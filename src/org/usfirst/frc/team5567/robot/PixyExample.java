@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class PixyExample {
 
+	double maxArea = 0;
+	boolean firstFlag = true;
 	//	Sets up the I2C interface
 	M_I2C i2c = new M_I2C();
 
@@ -24,26 +26,40 @@ public class PixyExample {
 		System.out.println("Entered center on object");
 		pkt = i2c.getPixy();
 
+		if(firstFlag){
+			firstFlag = false;
+			maxArea = pkt.area;
+		}
+		else if(maxArea < pkt.area){
+			maxArea = pkt.area;
+		}
+		System.out.println(maxArea);
+//		Stops the robot if the area of the target is too great
+		if(maxArea > 0.1){
+			driveTrain.arcadeDrive(0, 0, false);
+			Timer.delay(.05);
+			return;
+		}
 		//	If data exists, proceed (-1 is the default value)
 		if(pkt.x != -1){
 
 			System.out.println("Data Exists");
-
+			
 			//	While the object is not center
-			if(pkt.x < .48 || pkt.x > .52){
+			if(pkt.x < .425 || pkt.x > .575){
 				System.out.println("Object is not in center");
 
 				//	If the Pixy sees the object on the left side of robot, turn left
-				if(pkt.x < .48){
+				if(pkt.x < .425){
 					System.out.println("Object on left");
-					driveTrain.arcadeDrive(0, -0.2, false);
+					driveTrain.arcadeDrive(0, -0.15, false);
 					Timer.delay(0.05);
 				}
 
 				//	If the Pixy sees the object on the right side of robot, turn right
-				else if(pkt.x > .52){
+				else if(pkt.x > .575){
 					System.out.println("Object on right");
-					driveTrain.arcadeDrive(0, 0.2, false);
+					driveTrain.arcadeDrive(0, 0.15, false);
 					Timer.delay(0.05);
 				}
 
@@ -56,17 +72,17 @@ public class PixyExample {
 			}
 
 			//	If the object is in the center
-			else if(pkt.x > .48 || pkt.x < .52){
+			else if(pkt.x > .425 || pkt.x < .575){
 				System.out.println("Object is in center");
 
 				//	Stops the robot if the area of the target is too great
-				if(pkt.area > 0.4){
+				if(maxArea > 0.2){
 					driveTrain.arcadeDrive(0, 0, false);
 				}
 
 				else{
 					//	Drives forward
-					driveTrain.arcadeDrive(0.1,0, false);
+					driveTrain.arcadeDrive(0.2,0, false);
 					Timer.delay(0.05);
 				}
 
@@ -80,6 +96,7 @@ public class PixyExample {
 			driveTrain.arcadeDrive(0, 0, false);
 			System.out.println("Data does not exist");
 		}
+		
 	}
 
 }
