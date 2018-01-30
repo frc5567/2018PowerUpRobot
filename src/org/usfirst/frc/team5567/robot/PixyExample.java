@@ -1,7 +1,6 @@
 package org.usfirst.frc.team5567.robot;
 
 import org.usfirst.frc.team5567.robot.PixyPacket;
-
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
@@ -9,6 +8,13 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class PixyExample {
 
+	//  Variables for movement
+	public static final double STOP_AREA = 0.1;
+	public static final double CENTER_POSITION = 0.5;
+	public static final double CENTER_THRESHOLD = 0.075;
+	public static final double ROTATION_SPEED = 0.15;
+	public static final double DRIVE_SPEED = 0.2;
+	
 	double maxArea = 0;
 	boolean firstFlag = true;
 	//	Sets up the I2C interface
@@ -26,40 +32,44 @@ public class PixyExample {
 		System.out.println("Entered center on object");
 		pkt = i2c.getPixy();
 
+		//	Checks if first time through
 		if(firstFlag){
 			firstFlag = false;
 			maxArea = pkt.area;
 		}
+		//	Sets maxArea so we have a stable value to evaluate
 		else if(maxArea < pkt.area){
 			maxArea = pkt.area;
 		}
-		System.out.println(maxArea);
-//		Stops the robot if the area of the target is too great
-		if(maxArea > 0.1){
+		//	Stops the robot if the target is too close
+		if(maxArea > STOP_AREA){
 			driveTrain.arcadeDrive(0, 0, false);
-			Timer.delay(.05);
 			return;
 		}
-		//	If data exists, proceed (-1 is the default value)
+		System.out.println(maxArea);
+
+
+
+		//	If data exists, proceed (-1 represents the absence of data)
 		if(pkt.x != -1){
 
 			System.out.println("Data Exists");
-			
+
 			//	While the object is not center
-			if(pkt.x < .425 || pkt.x > .575){
+			if(pkt.x < CENTER_POSITION - CENTER_THRESHOLD || pkt.x > CENTER_POSITION + CENTER_THRESHOLD){
 				System.out.println("Object is not in center");
 
 				//	If the Pixy sees the object on the left side of robot, turn left
-				if(pkt.x < .425){
+				if(pkt.x < CENTER_POSITION - CENTER_THRESHOLD){
 					System.out.println("Object on left");
-					driveTrain.arcadeDrive(0, -0.15, false);
+					driveTrain.arcadeDrive(0, -ROTATION_SPEED, false);
 					Timer.delay(0.05);
 				}
 
 				//	If the Pixy sees the object on the right side of robot, turn right
-				else if(pkt.x > .575){
+				else if(pkt.x > CENTER_POSITION + CENTER_THRESHOLD){
 					System.out.println("Object on right");
-					driveTrain.arcadeDrive(0, 0.15, false);
+					driveTrain.arcadeDrive(0, ROTATION_SPEED, false);
 					Timer.delay(0.05);
 				}
 
@@ -72,31 +82,24 @@ public class PixyExample {
 			}
 
 			//	If the object is in the center
-			else if(pkt.x > .425 || pkt.x < .575){
+			else if(pkt.x > CENTER_POSITION - CENTER_THRESHOLD || pkt.x < CENTER_POSITION + CENTER_THRESHOLD){
 				System.out.println("Object is in center");
 
-				//	Stops the robot if the area of the target is too great
-				if(maxArea > 0.2){
-					driveTrain.arcadeDrive(0, 0, false);
-				}
-
-				else{
-					//	Drives forward
-					driveTrain.arcadeDrive(0.2,0, false);
-					Timer.delay(0.05);
-				}
+				//	Drives forward
+				driveTrain.arcadeDrive(DRIVE_SPEED,0, false);
+				Timer.delay(0.05);
 
 				System.out.println("XPos:  " + pkt.x + "  YPos:   " + pkt.y);
 
 			}
 		}
+
+		//  Stops the robot if data is lost or does not exist
 		else if(pkt.x == -1){
-			
-			//	Stops the robot if data is lost
 			driveTrain.arcadeDrive(0, 0, false);
 			System.out.println("Data does not exist");
 		}
-		
+
 	}
 
 }
