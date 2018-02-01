@@ -1,4 +1,4 @@
-"-ARDUINO DOCUMENTATION-
+-ARDUINO DOCUMENTATION-
 By Josh Overbeek
 
 1: SETUP
@@ -32,7 +32,8 @@ These are the setting our Pixy currently uses
 - I2C address 0x54 (Default)
 - UART baudrate 19200 (Default)
 - Default Program 0 (Default)
-- Brightness
+- Brightness 80
+- Color Code Disabled
 
 3: Arduino
 The Arduino will run whatever program is on it as soon as it is powered on. In order to view the prints when plugged into 
