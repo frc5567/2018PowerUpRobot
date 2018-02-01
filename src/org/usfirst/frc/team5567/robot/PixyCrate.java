@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 //	Credit to Team 5188 Classified Robotics for the source code
 
-public class PixyExample {
+public class PixyCrate {
 
 	//  Variables for movement
 	public static final double STOP_AREA = 0.1;
