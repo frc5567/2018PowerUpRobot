@@ -1,8 +1,22 @@
 package org.usfirst.frc.team5567.robot;
 
 import com.kauailabs.navx.frc.AHRS;
-
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CameraServer;
+
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
+import edu.wpi.cscore.AxisCamera;
+import edu.wpi.cscore.CvSink;
+import edu.wpi.cscore.CvSource;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.Ultrasonic;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.SPI;
@@ -20,6 +34,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * This is a demo program showing the use of the navX MXP to implement
@@ -60,8 +76,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	final SpeedControllerGroup leftMotors;
 	final SpeedControllerGroup rightMotors;
 
+
+	//  Declaring Encoders for drivetrain motor control
+	//	final Encoder leftEncoder;
+	//	final Encoder rightEncoder;
+
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
+	//	final XboxController copilotController;
+
 
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
@@ -100,6 +123,33 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	//static final double kTargetAngleDegrees = 360.0f;
 	static final double kTargetAngleDegrees = 90;
+
+  	//  Declaring timer used in auto
+	//	Timer autoTimer;
+
+	/*	//  Declaring Ultrasonics used in auto
+	Ultrasonic lUltra;
+	Ultrasonic rUltra;
+	 */
+	//  Declaring Pixy camera used for vision
+	PixyCrate myPixy;
+
+	//	Declaring GRIP method
+	GripPipeline CubeHunter;
+
+	UsbCamera camera;
+	
+	Thread m_visionThread;
+	
+	Mat mat;
+	
+	NetworkTable gripOutputs;
+  
+  
+  
+	/*
+	 * This is our robot's constructor.
+	 */
 	public Robot() {
 		//  Instantiating Speed Controllers and assigned ports
 		frontLeftMotor = new VictorSP(0);
@@ -115,8 +165,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-		//  Instantiating Xbox Controllers
+		//  Instantiating Drivetrain Encoders and assigned ports
+		//		leftEncoder = new Encoder(6, 7);
+		//		rightEncoder = new Encoder(8, 9);
+		//
+		//		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
+		//		copilotController = new XboxController (1);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
@@ -158,10 +213,64 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		SmartDashboard.putNumber("KD", turnController.getD());
 		SmartDashboard.putNumber("Speed", testSpd);
 
+		/*//  Instantiating ultrasonics
+		lUltra = new Ultrasonic(1,0);
+		rUltra = new Ultrasonic(3,2);
+		lUltra.setAutomaticMode(true);
+		 */
+		
+		//  Instantiating pixy camera
+		myPixy = new PixyCrate();
+		
+		//	Instantiates a USB camera
+		camera = CameraServer.getInstance().startAutomaticCapture();
+		
+		//	Creates a Mat for outputting vision code
+		mat = new Mat();
+
+		//	Creates a GRIP pipeline for filtering vision code
+		CubeHunter = new GripPipeline();
+		
+		//	Creates a thread for running the Camera (please don't hurt me)
+		m_visionThread = new Thread(() -> {
+			//  Get the UsbCamera from CameraServer
+			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+			
+			//  Set the resolution
+			camera.setResolution(640, 480);
+
+			//  Get a CvSink. This will capture Mats from the camera
+			CvSink cvSink = CameraServer.getInstance().getVideo();
+			
+			// Setup a CvSource. This will send images back to the Dashboard
+			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
+
+			//  This cannot be 'true'. The program will never exit if it is. This
+			//  lets the robot stop this thread when restarting robot code or
+			//  deploying.
+			while (!Thread.interrupted()) {
+				//  Tell the CvSink to grab a frame from the camera and put it
+				//  in the source mat.  If there is an error notify the output.
+				if (cvSink.grabFrame(mat) == 0) {
+					//  Send the output the error.
+					outputStream.notifyError(cvSink.getError());
+					//  skip the rest of the current iteration
+					continue;
+				}
+			}
+				
+				// Give the output stream a new image to display
+				outputStream.putFrame(mat);
+			
+		});
 	}
 
+  @Override
 	public void robotInit(){
 		//System.out.println(SmartDashboard.getNumber("Speed", -10));
+  
+		//lUltra.setEnabled(true);
+		//rUltra.setEnabled(true);
 	}
 
 	public void autonomousInit(){
@@ -179,6 +288,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void autonomousPeriodic(){
 		driveTrain.setSafetyEnabled(true);
+    
+    
+		//  Auton for testing vision
+		//  A method that turns the robot to face the target
+//		myPixy.centerOnObject(driveTrain);
+//		Timer.delay(.07);
+    
 		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
 		/* While this button is held down, rotate to target angle.  
 		 * Since a Tank drive system cannot move forward simultaneously 
@@ -223,7 +339,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 
 		Timer.delay(0.05);		// wait for a motor update time
-
 	}
 
 	public void teleopInit(){
@@ -245,6 +360,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//rotateToAngleRate = output;
 	}
 
+
 	public void testInit(){
 		ahrs.zeroYaw();
 		/*
@@ -257,12 +373,20 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		turnController.reset();
 		//System.out.println(SmartDashboard.getNumber("Speed", -10));
 	}
+
+  
 	public void testPeriodic(){
 		if (!turnController.isEnabled()) {
 			turnController.setSetpoint(kTargetAngleDegrees);
 			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
+  
+// 		CubeHunter.process(mat);
+//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
+		//	Prints the location of the blobs (maybe)
+//		System.out.println(test.dump());
+ 
 		//		Sendable sendable = null;
 		//		LiveWindow.add(sendable);
 		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
