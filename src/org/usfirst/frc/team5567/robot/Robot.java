@@ -1,17 +1,11 @@
 package org.usfirst.frc.team5567.robot;
 
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.CameraServer;
 
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
-import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
@@ -20,12 +14,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Sendable;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.Timer;
@@ -124,7 +114,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//static final double kTargetAngleDegrees = 360.0f;
 	static final double kTargetAngleDegrees = 90;
 
-  	//  Declaring timer used in auto
+	//  Declaring timer used in auto
 	//	Timer autoTimer;
 
 	/*	//  Declaring Ultrasonics used in auto
@@ -138,15 +128,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	GripPipeline CubeHunter;
 
 	UsbCamera camera;
-	
+
 	Thread m_visionThread;
-	
+
 	Mat mat;
-	
+
 	NetworkTable gripOutputs;
-  
-  
-  
+
+	XboxController copilotController;
+
+	CrateGrabber grabberArm;
+	boolean armFlag;
+	boolean raisedArm;
+
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -171,12 +165,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//
 		//		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
-		//		copilotController = new XboxController (1);
+		copilotController = new XboxController (1);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
 
-		SmartDashboard.putNumber("kP", turnController.getP());
 
 		try {
 			/***********************************************************************
@@ -207,7 +200,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		/* Add the PID Controller to the Test-mode dashboard, allowing manual  */
 		/* tuning of the Turn Controller's P, I and D coefficients.            */
 		/* Typically, only the P value needs to be modified.                   */
-		LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
+		//	LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
 		SmartDashboard.putNumber("KP", turnController.getP());
 		SmartDashboard.putNumber("KI", turnController.getI());
 		SmartDashboard.putNumber("KD", turnController.getD());
@@ -218,30 +211,43 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rUltra = new Ultrasonic(3,2);
 		lUltra.setAutomaticMode(true);
 		 */
-		
+		double cubeLaunchSpeed = 0.4;
+		double cubeIntakeSpeed = 0.3;
+		grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
+
+	}
+
+	@Override
+	public void robotInit(){
+		//System.out.println(SmartDashboard.getNumber("Speed", -10));
+
+		//SmartDashboard.putNumber("kP", turnController.getP());
+
+		//lUltra.setEnabled(true);
+		//rUltra.setEnabled(true);
 		//  Instantiating pixy camera
 		myPixy = new PixyCrate();
-		
+
 		//	Instantiates a USB camera
 		camera = CameraServer.getInstance().startAutomaticCapture();
-		
+
 		//	Creates a Mat for outputting vision code
 		mat = new Mat();
 
 		//	Creates a GRIP pipeline for filtering vision code
 		CubeHunter = new GripPipeline();
-		
+
 		//	Creates a thread for running the Camera (please don't hurt me)
 		m_visionThread = new Thread(() -> {
 			//  Get the UsbCamera from CameraServer
 			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-			
+
 			//  Set the resolution
 			camera.setResolution(640, 480);
 
 			//  Get a CvSink. This will capture Mats from the camera
 			CvSink cvSink = CameraServer.getInstance().getVideo();
-			
+
 			// Setup a CvSource. This will send images back to the Dashboard
 			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
 
@@ -258,19 +264,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					continue;
 				}
 			}
-				
-				// Give the output stream a new image to display
-				outputStream.putFrame(mat);
-			
-		});
-	}
 
-  @Override
-	public void robotInit(){
-		//System.out.println(SmartDashboard.getNumber("Speed", -10));
-  
-		//lUltra.setEnabled(true);
-		//rUltra.setEnabled(true);
+			// Give the output stream a new image to display
+			outputStream.putFrame(mat);
+
+		});
 	}
 
 	public void autonomousInit(){
@@ -288,13 +286,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void autonomousPeriodic(){
 		driveTrain.setSafetyEnabled(true);
-    
-    
+
+
 		//  Auton for testing vision
 		//  A method that turns the robot to face the target
-//		myPixy.centerOnObject(driveTrain);
-//		Timer.delay(.07);
-    
+		//		myPixy.centerOnObject(driveTrain);
+		//		Timer.delay(.07);
+
 		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
 		/* While this button is held down, rotate to target angle.  
 		 * Since a Tank drive system cannot move forward simultaneously 
@@ -343,6 +341,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void teleopInit(){
 		driveTrain.setSafetyEnabled(true);
+
+		armFlag = false;
+		raisedArm = false;
 	}
 
 	/**
@@ -351,6 +352,41 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void teleopPeriodic() {
 		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight) - pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
 		Timer.delay(0.1);
+
+		if(armFlag == false){
+			if(copilotController.getAButton()){
+				grabberArm.closeGrabber(true);
+				armFlag = true;
+			}
+		}
+		else if(armFlag){
+			if(copilotController.getAButton()){
+				grabberArm.openGrabber(true);
+				armFlag = false;
+			}
+		}
+		if(raisedArm == false){
+			if(copilotController.getBButton()){
+				grabberArm.raiseArm();
+			}
+		}
+		else if(raisedArm){
+			if(copilotController.getBButton()){
+				grabberArm.lowerArm();
+			}
+		}
+		
+		if(copilotController.getYButton()){
+			//	if(platesensor == false){
+			grabberArm.cubeIntake();
+			//	else
+			grabberArm.stopIntake();
+		}
+		else if (copilotController.getXButton()){
+			grabberArm.launchCube(true);
+		}
+		
+
 	}
 
 	@Override
@@ -374,19 +410,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//System.out.println(SmartDashboard.getNumber("Speed", -10));
 	}
 
-  
+
 	public void testPeriodic(){
 		if (!turnController.isEnabled()) {
 			turnController.setSetpoint(kTargetAngleDegrees);
 			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
-  
-// 		CubeHunter.process(mat);
-//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
+
+		// 		CubeHunter.process(mat);
+		//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
 		//	Prints the location of the blobs (maybe)
-//		System.out.println(test.dump());
- 
+		//		System.out.println(test.dump());
+
 		//		Sendable sendable = null;
 		//		LiveWindow.add(sendable);
 		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());

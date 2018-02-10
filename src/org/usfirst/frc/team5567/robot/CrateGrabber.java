@@ -14,8 +14,10 @@ public class CrateGrabber {
 	SpeedController leftArmMotor;
 	SpeedController rightArmMotor;
 	
-	//	Declaring Double Solenoid for arm movement
-	DoubleSolenoid dSol;
+	//	Declaring Double Solenoids for arm movement
+	DoubleSolenoid dSolLeft;
+	DoubleSolenoid dSolRight;
+	DoubleSolenoid dSolArm;
 	
 	//	Declaring intake and launch speed variables
 	double intakeSpeed;
@@ -24,7 +26,8 @@ public class CrateGrabber {
 	//	Declaring drive train used to control arm wheels
 	DifferentialDrive driveTrain;
 	
-	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPort, int backwardPort, double cubeIntakeSpeed, double cubeLaunchSpeed){
+	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft, int forwardPortRight, int backwardPortRight,
+			int forwardPortArm, int backwardPortArm, double cubeIntakeSpeed, double cubeLaunchSpeed){
 		//	Instantiating arm wheel speed controllers
 		leftArmMotor = new PWMTalonSRX(leftMotorArm);
 		rightArmMotor = new PWMTalonSRX(rightMotorArm);
@@ -33,16 +36,51 @@ public class CrateGrabber {
 		driveTrain = new DifferentialDrive(leftArmMotor, rightArmMotor);
 		
 		//	Instantiating solonoid
-		dSol = new DoubleSolenoid(forwardPort, backwardPort);
+		dSolLeft = new DoubleSolenoid(forwardPortLeft, backwardPortLeft);
+		dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
+		dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
 	}
 	
 	//	Method for opening the arms
 	public void openGrabber(boolean openGrabber){
-		dSol.set(Value.kReverse);
+		dSolLeft.set(Value.kForward);
+		dSolRight.set(Value.kForward);
 	}
 	
 	//	Method for closing the arms
 	public void closeGrabber(boolean closeGrabber){
-		
+		dSolLeft.set(Value.kReverse);
+		dSolRight.set(Value.kForward);
+	}
+	
+	//	Method for puling in cubes
+	public void cubeIntake(){
+		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
+	}
+	
+	//	Method for launching cubes
+	public void launchCube(boolean launchButton){
+		driveTrain.tankDrive(-intakeSpeed, -intakeSpeed, false);
+	}
+	
+	//	Stop intake
+	public void stopIntake(){
+		driveTrain.tankDrive(0, 0, false);
+	}
+	
+	//	Method for detecting when a cube is in our grasp
+	public boolean detectCube(){
+		//	SENSOR STUFF HERE change true to actual variable
+		return true;
+	}
+	
+	//	Method for raising arm
+	public void raiseArm(){
+		dSolArm.set(Value.kForward);
+	}
+	
+	//	Method for lowering arm
+	public void lowerArm(){
+		dSolArm.set(Value.kReverse);
 	}
 }
