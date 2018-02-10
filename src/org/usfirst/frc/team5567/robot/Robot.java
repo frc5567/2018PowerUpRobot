@@ -8,6 +8,18 @@
 package org.usfirst.frc.team5567.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.CameraServer;
+
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
+import edu.wpi.cscore.AxisCamera;
+import edu.wpi.cscore.CvSink;
+import edu.wpi.cscore.CvSource;
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -18,7 +30,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -43,12 +55,12 @@ public class Robot extends IterativeRobot {
 	final SpeedControllerGroup rightMotors;
 
 	//  Declaring Encoders for drivetrain motor control
-//	final Encoder leftEncoder;
-//	final Encoder rightEncoder;
+	//	final Encoder leftEncoder;
+	//	final Encoder rightEncoder;
 
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
-//	final XboxController copilotController;
+	//	final XboxController copilotController;
 
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
@@ -57,16 +69,25 @@ public class Robot extends IterativeRobot {
 	final ADXRS450_Gyro myGyro;
 
 	//  Declaring timer used in auto
-//	Timer autoTimer;
+	//	Timer autoTimer;
 
-	//  Declaring Ultrasonics used in auto
-//	Ultrasonic lUltra;
-//	Ultrasonic rUltra;
-	
+	/*	//  Declaring Ultrasonics used in auto
+	Ultrasonic lUltra;
+	Ultrasonic rUltra;
+	 */
 	//  Declaring Pixy camera used for vision
-//	PixyExample myPixy;
+	PixyCrate myPixy;
 
+	//	Declaring GRIP method
+	GripPipeline CubeHunter;
 
+	UsbCamera camera;
+	
+	Thread m_visionThread;
+	
+	Mat mat;
+	
+	NetworkTable gripOutputs;
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -84,14 +105,14 @@ public class Robot extends IterativeRobot {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-		
+
 		//  Instantiating Drivetrain Encoders and assigned ports
-//		leftEncoder = new Encoder(6, 7);
-//		rightEncoder = new Encoder(8, 9);
-//
-//		//  Instantiating Xbox Controllers
+		//		leftEncoder = new Encoder(6, 7);
+		//		rightEncoder = new Encoder(8, 9);
+		//
+		//		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
-//		copilotController = new XboxController (1);
+		//		copilotController = new XboxController (1);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
@@ -100,13 +121,56 @@ public class Robot extends IterativeRobot {
 		myGyro = new ADXRS450_Gyro();
 		myGyro.calibrate();
 
-		//  Instantiating ultrasonics
-//		lUltra = new Ultrasonic(1,0);
-//		rUltra = new Ultrasonic(3,2);
+		/*//  Instantiating ultrasonics
+		lUltra = new Ultrasonic(1,0);
+		rUltra = new Ultrasonic(3,2);
+		lUltra.setAutomaticMode(true);
+		 */
 		
 		//  Instantiating pixy camera
-//		myPixy = new PixyExample();
+		myPixy = new PixyCrate();
+		
+		//	Instantiates a USB camera
+		camera = CameraServer.getInstance().startAutomaticCapture();
+		
+		//	Creates a Mat for outputting vision code
+		mat = new Mat();
 
+		//	Creates a GRIP pipeline for filtering vision code
+		CubeHunter = new GripPipeline();
+		
+		//	Creates a thread for running the Camera (please don't hurt me)
+		m_visionThread = new Thread(() -> {
+			//  Get the UsbCamera from CameraServer
+			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+			
+			//  Set the resolution
+			camera.setResolution(640, 480);
+
+			//  Get a CvSink. This will capture Mats from the camera
+			CvSink cvSink = CameraServer.getInstance().getVideo();
+			
+			// Setup a CvSource. This will send images back to the Dashboard
+			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
+
+			//  This cannot be 'true'. The program will never exit if it is. This
+			//  lets the robot stop this thread when restarting robot code or
+			//  deploying.
+			while (!Thread.interrupted()) {
+				//  Tell the CvSink to grab a frame from the camera and put it
+				//  in the source mat.  If there is an error notify the output.
+				if (cvSink.grabFrame(mat) == 0) {
+					//  Send the output the error.
+					outputStream.notifyError(cvSink.getError());
+					//  skip the rest of the current iteration
+					continue;
+				}
+			}
+				
+				// Give the output stream a new image to display
+				outputStream.putFrame(mat);
+			
+		});
 	}
 
 
@@ -122,8 +186,8 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 
 
-//		lUltra.setEnabled(true);
-//		rUltra.setEnabled(true);
+		//lUltra.setEnabled(true);
+		//rUltra.setEnabled(true);
 
 
 	}
@@ -141,12 +205,12 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-//		lUltra.setAutomaticMode(true);
-//		rUltra.setAutomaticMode(true);
-//		//  Instantiating, reseting, and starting timer used in timer
-//		autoTimer = new Timer();
-//		autoTimer.reset();
-//		autoTimer.start();
+		//lUltra.setAutomaticMode(true);
+		//rUltra.setAutomaticMode(true);
+		//		//  Instantiating, reseting, and starting timer used in timer
+		//		autoTimer = new Timer();
+		//		autoTimer.reset();
+		//		autoTimer.start();
 	}
 
 	/**
@@ -154,36 +218,19 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
+		//System.out.println("Left Range   " + lUltra.getRangeMM() + "    Right Range   " +rUltra.getRangeMM());
 
 		//  Auton for testing vision
-//		// Prevents the robot from moving if it's too close to the wall
-//		if((lUltra.getRangeMM()>150) && rUltra.getRangeMM()>150){
-//			// A method that turns the robot to face the target
-//			myPixy.centerOnObject(driveTrain);
-//			Timer.delay(.05);
-//		}
-		/*  Commented out for easy of testing auton
-		//  Drives forward when timer is less than 5 seconds
-		if(autoTimer.get() < 5) {
-			driveTrain.arcadeDrive(0.5, 0);
-		}
-		//stop when timer is after 5 seconds
-		else {
-			driveTrain.arcadeDrive(0, 0);
-			//Rotate using gyro data 180 degrees
-			if(myGyro.getAngle() < 180) {
-				driveTrain.arcadeDrive(0, .5);
-			}
-			else {
-				driveTrain.arcadeDrive(0, 0);
-			}
-		}
-		*/
+		//  A method that turns the robot to face the target
+		myPixy.centerOnObject(driveTrain);
+		Timer.delay(.07);
+
+
 	}
 
 	public void teleopInit() {
 	}
-	
+
 	/**
 	 * This function is called periodically during operator control.
 	 */
@@ -192,18 +239,24 @@ public class Robot extends IterativeRobot {
 		driveTrain.tankDrive(-pilotController.getY(Hand.kLeft), -pilotController.getY(Hand.kRight));
 	}
 
-	
+
 	public void testInit(){
 		System.out.println("here");
 	}
-	
+
 	/**
 	 * This function is called periodically during test mode.
 	 */
 	@Override
 	public void testPeriodic() {
-		driveTrain.tankDrive(.75, .75);
-//		System.out.println("gyro:\t "+myGyro.getAngle());
-		Timer.delay(.1);
+		CubeHunter.process(mat);
+		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
+		//	Prints the location of the blobs (maybe)
+		System.out.println(test.dump());
+		//		driveTrain.tankDrive(.75, .75);
+		//		//		System.out.println("gyro:\t "+myGyro.getAngle());
+		//		Timer.delay(.1);
+		//System.out.println("left:\t"+lUltra.getRangeMM());
+		//System.out.println("right:\t"+rUltra.getRangeMM());
 	}
 }
