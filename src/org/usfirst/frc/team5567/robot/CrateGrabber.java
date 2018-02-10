@@ -50,13 +50,13 @@ public class CrateGrabber {
 	//	Method for opening the arms
 	public void openGrabber(boolean openGrabber){
 		dSolLeft.set(Value.kForward);
-		dSolRight.set(Value.kForward);
+		//dSolRight.set(Value.kForward);
 	}
 	
 	//	Method for closing the arms
 	public void closeGrabber(boolean closeGrabber){
 		dSolLeft.set(Value.kReverse);
-		dSolRight.set(Value.kForward);
+		//dSolRight.set(Value.kForward);
 	}
 	
 	//	Method for puling in cubes

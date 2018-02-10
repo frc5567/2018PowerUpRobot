@@ -367,7 +367,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				armFlag = false;
 			}
 		}
-		if(raisedArm == false){
+		/*if(raisedArm == false){
 			if(copilotController.getBButton()){
 				grabberArm.raiseArm();
 			}
@@ -376,7 +376,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			if(copilotController.getBButton()){
 				grabberArm.lowerArm();
 			}
-		}
+		}*/
 		
 		if(copilotController.getYButton()){
 			if(grabberArm.detectCube() == false){
