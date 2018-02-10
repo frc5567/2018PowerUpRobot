@@ -1,12 +1,7 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package org.usfirst.frc.team5567.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.CameraServer;
 
@@ -22,27 +17,54 @@ import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
-import edu.wpi.first.wpilibj.VictorSP;
-import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Sendable;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.PIDOutput;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.Timer;
 
 /**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to each mode, as described in the IterativeRobot
- * documentation. If you change the name of this class or the package after
- * creating this project, you must also update the build.properties file in the
- * project.
+ * This is a demo program showing the use of the navX MXP to implement
+ * the "rotate to angle", "zero yaw" and "drive straight" on a Tank
+ * drive system.
+ *
+ * If Left Joystick Button 0 is pressed, a "turn" PID controller will 
+ * set to point to a target angle, and while the button is held the drive
+ * system will rotate to that angle (NOTE:  tank drive systems cannot simultaneously
+ * move forward/reverse while rotating).
+ *
+ * This example also includes a feature allowing the driver to "reset"
+ * the "yaw" angle.  When the reset occurs, the new gyro angle will be
+ * 0 degrees.  This can be useful in cases when the gyro drifts, which
+ * doesn't typically happen during a FRC match, but can occur during
+ * long practice sessions.
+ *
+ * Finally, if Left Joystick button 2 is held, the "turn" PID controller will
+ * be set to point to the current heading, and while the button is held,
+ * the driver system will continue to point in the direction.  The robot 
+ * can drive forward and backward (the magnitude of motion is the average
+ * of the Y axis values on the left and right joysticks).
+ *
+ * Note that the PID Controller coefficients defined below will need to
+ * be tuned for your drive system.
  */
-public class Robot extends IterativeRobot {
-	//global variables
+
+public class Robot extends IterativeRobot implements PIDOutput {
+	//	global variables
 
 	//  Declaring drivetrain Speed Controllers
 	final SpeedController frontLeftMotor;
@@ -54,6 +76,7 @@ public class Robot extends IterativeRobot {
 	final SpeedControllerGroup leftMotors;
 	final SpeedControllerGroup rightMotors;
 
+
 	//  Declaring Encoders for drivetrain motor control
 	//	final Encoder leftEncoder;
 	//	final Encoder rightEncoder;
@@ -62,13 +85,46 @@ public class Robot extends IterativeRobot {
 	final XboxController pilotController;
 	//	final XboxController copilotController;
 
+
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
 
-	//   Declaring analog Gyro
-	final ADXRS450_Gyro myGyro;
+	AHRS ahrs;																			
 
-	//  Declaring timer used in auto
+	PIDController turnController;
+	double rotateToAngleRate;
+
+	/* The following PID Controller coefficients will need to be tuned */
+	/* to match the dynamics of your drive system.  Note that the      */
+	/* SmartDashboard in Test mode has support for helping you tune    */
+	/* controllers by displaying a form where you can enter new P, I,  */
+	/* and D constants and test the mechanism.                         */
+
+	//	static final double kP = 2; //0.015;
+	//	static final double kI = 5; //0.00
+	//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
+	double kD = 0.105;//.035
+	final double kF = 0.00;
+
+	double kP = 0.0205;
+	double kI = 0.00012;
+
+	//	Constants for PID Controller for moving straight
+	//double kD = 0.255;//.035
+	//final double kF = 0.00;
+
+	//double kP = 0.0175;
+	//double kI = 0.0085;
+
+	//static final double kD = 0.035;
+	double testSpd = .4;
+	double newSpd = 0;
+	static final double kToleranceDegrees = 1;    
+
+	//static final double kTargetAngleDegrees = 360.0f;
+	static final double kTargetAngleDegrees = 90;
+
+  	//  Declaring timer used in auto
 	//	Timer autoTimer;
 
 	/*	//  Declaring Ultrasonics used in auto
@@ -88,12 +144,16 @@ public class Robot extends IterativeRobot {
 	Mat mat;
 	
 	NetworkTable gripOutputs;
+  
+  
+  
 	/*
 	 * This is our robot's constructor.
 	 */
 	public Robot() {
 		//  Instantiating Speed Controllers and assigned ports
 		frontLeftMotor = new VictorSP(0);
+		frontLeftMotor.setInverted(false);
 		backLeftMotor = new VictorSP(1);
 		backLeftMotor.setInverted(true);
 		frontRightMotor = new VictorSP(2);
@@ -104,7 +164,6 @@ public class Robot extends IterativeRobot {
 		//  Instantiating Speed Controller Groups
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
-
 
 		//  Instantiating Drivetrain Encoders and assigned ports
 		//		leftEncoder = new Encoder(6, 7);
@@ -117,9 +176,42 @@ public class Robot extends IterativeRobot {
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
 
-		//  Instantiating and calibrating analog gyro
-		myGyro = new ADXRS450_Gyro();
-		myGyro.calibrate();
+		SmartDashboard.putNumber("kP", turnController.getP());
+
+		try {
+			/***********************************************************************
+			 * navX-MXP:
+			 * - Communication via RoboRIO MXP (SPI, I2C, TTL UART) and USB.            
+			 * - See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface.
+			 * 
+			 * navX-Micro:
+			 * - Communication via I2C (RoboRIO MXP or Onboard) and USB.
+			 * - See http://navx-micro.kauailabs.com/guidance/selecting-an-interface.
+			 * 
+			 * Multiple navX-model devices on a single robot are supported.
+//			 ************************************************************************/
+			ahrs = new AHRS(SPI.Port.kMXP); 
+		} catch (RuntimeException ex ) {
+			DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
+		}
+		//turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		turnController = new PIDController(kP, kI, kD, kF, ahrs, this, 0.02);
+		turnController.setInputRange(-180.0f,  180.0f);
+		//turnController.setOutputRange(-1.0, 1.0);
+		turnController.setOutputRange(-.75, .75);
+		turnController.setAbsoluteTolerance(kToleranceDegrees);
+		//	turnController.setPercentTolerance(5);
+		turnController.setContinuous(true);
+		turnController.disable();
+
+		/* Add the PID Controller to the Test-mode dashboard, allowing manual  */
+		/* tuning of the Turn Controller's P, I and D coefficients.            */
+		/* Typically, only the P value needs to be modified.                   */
+		LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
+		SmartDashboard.putNumber("KP", turnController.getP());
+		SmartDashboard.putNumber("KI", turnController.getI());
+		SmartDashboard.putNumber("KD", turnController.getD());
+		SmartDashboard.putNumber("Speed", testSpd);
 
 		/*//  Instantiating ultrasonics
 		lUltra = new Ultrasonic(1,0);
@@ -173,90 +265,137 @@ public class Robot extends IterativeRobot {
 		});
 	}
 
-
-
-
-
-
-	/**
-	 * This function is run when the robot is first started up and should be
-	 * used for any initialization code.
-	 */
-	@Override
-	public void robotInit() {
-
-
+  @Override
+	public void robotInit(){
+		//System.out.println(SmartDashboard.getNumber("Speed", -10));
+  
 		//lUltra.setEnabled(true);
 		//rUltra.setEnabled(true);
+	}
 
+	public void autonomousInit(){
+		ahrs.zeroYaw();
+		turnController.free();
+		SmartDashboard.getNumber("KP",kP);
+		SmartDashboard.getNumber("KI",kI);
+		System.out.println(SmartDashboard.getNumber("KD",kD));
+		PIDController turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		//		turnController.setPID(kP, kI, kD);
+		turnController.setP(kP);turnController.setD(kD);turnController.setI(kI);
+		SmartDashboard.getNumber("Speed", testSpd);
 
 	}
 
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 *
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
-	 */
-	@Override
-	public void autonomousInit() {
-		//lUltra.setAutomaticMode(true);
-		//rUltra.setAutomaticMode(true);
-		//		//  Instantiating, reseting, and starting timer used in timer
-		//		autoTimer = new Timer();
-		//		autoTimer.reset();
-		//		autoTimer.start();
-	}
-
-	/**
-	 * This function is called periodically during autonomous.
-	 */
-	@Override
-	public void autonomousPeriodic() {
-		//System.out.println("Left Range   " + lUltra.getRangeMM() + "    Right Range   " +rUltra.getRangeMM());
-
+	public void autonomousPeriodic(){
+		driveTrain.setSafetyEnabled(true);
+    
+    
 		//  Auton for testing vision
 		//  A method that turns the robot to face the target
-		myPixy.centerOnObject(driveTrain);
-		Timer.delay(.07);
+//		myPixy.centerOnObject(driveTrain);
+//		Timer.delay(.07);
+    
+		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
+		/* While this button is held down, rotate to target angle.  
+		 * Since a Tank drive system cannot move forward simultaneously 
+		 * while rotating, all joystick input is ignored until this
+		 * button is released.
+		 */
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(0);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		// driveTrain.arcadeDrive(SmartDashboard.getNumber("Speed", 0), rotateToAngleRate, false);
+		else if ( pilotController.getBButton()) {
+			//		 "Zero" the yaw (whatever direction the sensor is 
+			// pointing now will become the new "Zero" degrees.
 
+			ahrs.zeroYaw();
+		} else if ( pilotController.getRawButton(2)) {
+			//				 While this button is held down, the robot is in
+			//		 * "drive straight" mode.  Whatever direction the robot
+			//		 * was heading when "drive straight" mode was entered
+			//		 * will be maintained.  The average speed of both 
+			//		 * joysticks is the magnitude of motion.
 
+			if(!turnController.isEnabled()) {
+				// Acquire current yaw angle, using this as the target angle.
+				turnController.setSetpoint(ahrs.getYaw());
+				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+				turnController.enable();
+			}
+			double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
+			double leftStickValue = magnitude + rotateToAngleRate;
+			double rightStickValue = magnitude - rotateToAngleRate;
+			driveTrain.tankDrive(leftStickValue,  rightStickValue);
+		} else {
+			//				 If the turn controller had been enabled, disable it now. 
+			if(turnController.isEnabled()) {
+				turnController.disable();
+			}
+			//			 Standard tank drive, no driver assistance. 
+			driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
+		}
+
+		Timer.delay(0.05);		// wait for a motor update time
 	}
 
-	public void teleopInit() {
+	public void teleopInit(){
+		driveTrain.setSafetyEnabled(true);
 	}
 
 	/**
-	 * This function is called periodically during operator control.
+	 * Runs the motors with tank steering.
 	 */
-	@Override
 	public void teleopPeriodic() {
-		driveTrain.tankDrive(-pilotController.getY(Hand.kLeft), -pilotController.getY(Hand.kRight));
+		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight) - pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
+		Timer.delay(0.1);
+	}
+
+	@Override
+	/* This function is invoked periodically by the PID Controller, */
+	/* based upon navX MXP yaw angle input and PID Coefficients.    */
+	public void pidWrite(double output) {
+		//rotateToAngleRate = output;
 	}
 
 
 	public void testInit(){
-		System.out.println("here");
+		ahrs.zeroYaw();
+		/*
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(kTargetAngleDegrees);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		 */
+		turnController.reset();
+		//System.out.println(SmartDashboard.getNumber("Speed", -10));
 	}
 
-	/**
-	 * This function is called periodically during test mode.
-	 */
-	@Override
-	public void testPeriodic() {
-		CubeHunter.process(mat);
-		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
+  
+	public void testPeriodic(){
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(kTargetAngleDegrees);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+  
+// 		CubeHunter.process(mat);
+//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
 		//	Prints the location of the blobs (maybe)
-		System.out.println(test.dump());
-		//		driveTrain.tankDrive(.75, .75);
-		//		//		System.out.println("gyro:\t "+myGyro.getAngle());
-		//		Timer.delay(.1);
-		//System.out.println("left:\t"+lUltra.getRangeMM());
-		//System.out.println("right:\t"+rUltra.getRangeMM());
+//		System.out.println(test.dump());
+ 
+		//		Sendable sendable = null;
+		//		LiveWindow.add(sendable);
+		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
+		//		LiveWindow.add(turnController.getSubsystem());
+		//		LiveWindow.addChild(turnController, turnController.getD());
+		System.out.println(turnController.onTarget());
+		rotateToAngleRate = turnController.get();
+		System.out.println((double)rotateToAngleRate);
+		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+		Timer.delay(.005);
 	}
 }
