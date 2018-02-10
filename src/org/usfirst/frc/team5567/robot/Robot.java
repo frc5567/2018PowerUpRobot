@@ -140,7 +140,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	CrateGrabber grabberArm;
 	boolean armFlag;
 	boolean raisedArm;
-
+	
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -269,6 +269,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			outputStream.putFrame(mat);
 
 		});
+		
+		
 	}
 
 	public void autonomousInit(){
@@ -365,7 +367,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				armFlag = false;
 			}
 		}
-		if(raisedArm == false){
+		/*if(raisedArm == false){
 			if(copilotController.getBButton()){
 				grabberArm.raiseArm();
 			}
@@ -374,13 +376,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			if(copilotController.getBButton()){
 				grabberArm.lowerArm();
 			}
-		}
+		}*/
 		
 		if(copilotController.getYButton()){
-			//	if(platesensor == false){
+			if(grabberArm.detectCube() == false){
 			grabberArm.cubeIntake();
-			//	else
+			}
+			else if(grabberArm.detectCube()){
 			grabberArm.stopIntake();
+			}
 		}
 		else if (copilotController.getXButton()){
 			grabberArm.launchCube(true);

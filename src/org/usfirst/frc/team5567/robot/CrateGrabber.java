@@ -26,6 +26,9 @@ public class CrateGrabber {
 	//	Declaring drive train used to control arm wheels
 	DifferentialDrive driveTrain;
 	
+	//	Declaring switch plate for detecting cube
+	SwitchPlate armSwitch;
+	
 	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft, int forwardPortRight, int backwardPortRight,
 			int forwardPortArm, int backwardPortArm, double cubeIntakeSpeed, double cubeLaunchSpeed){
 		//	Instantiating arm wheel speed controllers
@@ -39,18 +42,21 @@ public class CrateGrabber {
 		dSolLeft = new DoubleSolenoid(forwardPortLeft, backwardPortLeft);
 		dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
 		dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
+		
+		//	Instantiating switchPlate
+		armSwitch = new SwitchPlate(0);
 	}
 	
 	//	Method for opening the arms
 	public void openGrabber(boolean openGrabber){
 		dSolLeft.set(Value.kForward);
-		dSolRight.set(Value.kForward);
+		//dSolRight.set(Value.kForward);
 	}
 	
 	//	Method for closing the arms
 	public void closeGrabber(boolean closeGrabber){
 		dSolLeft.set(Value.kReverse);
-		dSolRight.set(Value.kForward);
+		//dSolRight.set(Value.kForward);
 	}
 	
 	//	Method for puling in cubes
@@ -70,8 +76,7 @@ public class CrateGrabber {
 	
 	//	Method for detecting when a cube is in our grasp
 	public boolean detectCube(){
-		//	SENSOR STUFF HERE change true to actual variable
-		return true;
+		return armSwitch.get();
 	}
 	
 	//	Method for raising arm
