@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * This is a demo program showing the use of the navX MXP to implement
@@ -57,14 +59,14 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//  Declaring Speed Controller Groups
 	final SpeedControllerGroup leftMotors;
 	final SpeedControllerGroup rightMotors;
-	
+
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
-	
+
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
 
-	AHRS ahrs;
+	AHRS ahrs;																			
 
 	PIDController turnController;
 	double rotateToAngleRate;
@@ -75,18 +77,33 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	/* controllers by displaying a form where you can enter new P, I,  */
 	/* and D constants and test the mechanism.                         */
 
-	static final double kP = 0.015;
-	static final double kI = 0.00;
-	static final double kD = 0.035;
-	static final double kF = 0.00;
+	//	static final double kP = 2; //0.015;
+	//	static final double kI = 5; //0.00
+	//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
+	double kD = 0.105;//.035
+	final double kF = 0.00;
 
-	static final double kToleranceDegrees = 2.0f;    
+	double kP = 0.0205;
+	double kI = 0.00012;
 
-	static final double kTargetAngleDegrees = 90.0f;
+	//	Constants for PID Controller for moving straight
+	//double kD = 0.255;//.035
+	//final double kF = 0.00;
 
+	//double kP = 0.0175;
+	//double kI = 0.0085;
+
+	//static final double kD = 0.035;
+	double testSpd = .4;
+	double newSpd = 0;
+	static final double kToleranceDegrees = 1;    
+
+	//static final double kTargetAngleDegrees = 360.0f;
+	static final double kTargetAngleDegrees = 90;
 	public Robot() {
 		//  Instantiating Speed Controllers and assigned ports
 		frontLeftMotor = new VictorSP(0);
+		frontLeftMotor.setInverted(false);
 		backLeftMotor = new VictorSP(1);
 		backLeftMotor.setInverted(true);
 		frontRightMotor = new VictorSP(2);
@@ -98,12 +115,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-		//			//  Instantiating Xbox Controllers
+		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
 
+		SmartDashboard.putNumber("kP", turnController.getP());
 
 		try {
 			/***********************************************************************
@@ -116,94 +134,144 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			 * - See http://navx-micro.kauailabs.com/guidance/selecting-an-interface.
 			 * 
 			 * Multiple navX-model devices on a single robot are supported.
-			 ************************************************************************/
+//			 ************************************************************************/
 			ahrs = new AHRS(SPI.Port.kMXP); 
 		} catch (RuntimeException ex ) {
 			DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
 		}
-		turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		//turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		turnController = new PIDController(kP, kI, kD, kF, ahrs, this, 0.02);
 		turnController.setInputRange(-180.0f,  180.0f);
-		turnController.setOutputRange(-1.0, 1.0);
+		//turnController.setOutputRange(-1.0, 1.0);
+		turnController.setOutputRange(-.75, .75);
 		turnController.setAbsoluteTolerance(kToleranceDegrees);
+		//	turnController.setPercentTolerance(5);
 		turnController.setContinuous(true);
 		turnController.disable();
 
 		/* Add the PID Controller to the Test-mode dashboard, allowing manual  */
 		/* tuning of the Turn Controller's P, I and D coefficients.            */
 		/* Typically, only the P value needs to be modified.                   */
-//		LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
+		LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
+		SmartDashboard.putNumber("KP", turnController.getP());
+		SmartDashboard.putNumber("KI", turnController.getI());
+		SmartDashboard.putNumber("KD", turnController.getD());
+		SmartDashboard.putNumber("Speed", testSpd);
+
+	}
+
+	public void robotInit(){
+		//System.out.println(SmartDashboard.getNumber("Speed", -10));
+	}
+
+	public void autonomousInit(){
+		ahrs.zeroYaw();
+		turnController.free();
+		SmartDashboard.getNumber("KP",kP);
+		SmartDashboard.getNumber("KI",kI);
+		System.out.println(SmartDashboard.getNumber("KD",kD));
+		PIDController turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
+		//		turnController.setPID(kP, kI, kD);
+		turnController.setP(kP);turnController.setD(kD);turnController.setI(kI);
+		SmartDashboard.getNumber("Speed", testSpd);
+
+	}
+
+	public void autonomousPeriodic(){
+		driveTrain.setSafetyEnabled(true);
+		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
+		/* While this button is held down, rotate to target angle.  
+		 * Since a Tank drive system cannot move forward simultaneously 
+		 * while rotating, all joystick input is ignored until this
+		 * button is released.
+		 */
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(0);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		// driveTrain.arcadeDrive(SmartDashboard.getNumber("Speed", 0), rotateToAngleRate, false);
+		else if ( pilotController.getBButton()) {
+			//		 "Zero" the yaw (whatever direction the sensor is 
+			// pointing now will become the new "Zero" degrees.
+
+			ahrs.zeroYaw();
+		} else if ( pilotController.getRawButton(2)) {
+			//				 While this button is held down, the robot is in
+			//		 * "drive straight" mode.  Whatever direction the robot
+			//		 * was heading when "drive straight" mode was entered
+			//		 * will be maintained.  The average speed of both 
+			//		 * joysticks is the magnitude of motion.
+
+			if(!turnController.isEnabled()) {
+				// Acquire current yaw angle, using this as the target angle.
+				turnController.setSetpoint(ahrs.getYaw());
+				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+				turnController.enable();
+			}
+			double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
+			double leftStickValue = magnitude + rotateToAngleRate;
+			double rightStickValue = magnitude - rotateToAngleRate;
+			driveTrain.tankDrive(leftStickValue,  rightStickValue);
+		} else {
+			//				 If the turn controller had been enabled, disable it now. 
+			if(turnController.isEnabled()) {
+				turnController.disable();
+			}
+			//			 Standard tank drive, no driver assistance. 
+			driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
+		}
+
+		Timer.delay(0.05);		// wait for a motor update time
+
 	}
 
 	public void teleopInit(){
-		ahrs.zeroYaw();
+		driveTrain.setSafetyEnabled(true);
 	}
-	
+
 	/**
 	 * Runs the motors with tank steering.
 	 */
 	public void teleopPeriodic() {
-		driveTrain.setSafetyEnabled(true);
-			if (true) {
-				/* While this button is held down, rotate to target angle.  
-				 * Since a Tank drive system cannot move forward simultaneously 
-				 * while rotating, all joystick input is ignored until this
-				 * button is released.
-				 */
-				if (!turnController.isEnabled()) {
-					turnController.setSetpoint(0);
-					rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-					turnController.enable();
-				}
-				driveTrain.arcadeDrive(pilotController.getY(Hand.kLeft), rotateToAngleRate, false);
-			}/* else if ( pilotController.getBButton()) {
-				 "Zero" the yaw (whatever direction the sensor is 
-				 * pointing now will become the new "Zero" degrees.
-				 
-				ahrs.zeroYaw();
-			} else if ( pilotController.getRawButton(2)) {
-				 While this button is held down, the robot is in
-				 * "drive straight" mode.  Whatever direction the robot
-				 * was heading when "drive straight" mode was entered
-				 * will be maintained.  The average speed of both 
-				 * joysticks is the magnitude of motion.
-				 
-				if(!turnController.isEnabled()) {
-					// Acquire current yaw angle, using this as the target angle.
-					turnController.setSetpoint(ahrs.getYaw());
-					rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-					turnController.enable();
-				}
-				double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
-				double leftStickValue = magnitude + rotateToAngleRate;
-				double rightStickValue = magnitude - rotateToAngleRate;
-				driveTrain.tankDrive(leftStickValue,  rightStickValue);
-			} else {
-				 If the turn controller had been enabled, disable it now. 
-				if(turnController.isEnabled()) {
-					turnController.disable();
-				}
-				 Standard tank drive, no driver assistance. 
-				driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
-			}*/
-			Timer.delay(0.05);		// wait for a motor update time
+		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight) - pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
+		Timer.delay(0.1);
 	}
 
 	@Override
 	/* This function is invoked periodically by the PID Controller, */
 	/* based upon navX MXP yaw angle input and PID Coefficients.    */
 	public void pidWrite(double output) {
-		rotateToAngleRate = output;
+		//rotateToAngleRate = output;
 	}
-	
+
 	public void testInit(){
 		ahrs.zeroYaw();
+		/*
 		if (!turnController.isEnabled()) {
 			turnController.setSetpoint(kTargetAngleDegrees);
 			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
+		 */
+		turnController.reset();
+		//System.out.println(SmartDashboard.getNumber("Speed", -10));
 	}
 	public void testPeriodic(){
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(kTargetAngleDegrees);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		//		Sendable sendable = null;
+		//		LiveWindow.add(sendable);
+		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
+		//		LiveWindow.add(turnController.getSubsystem());
+		//		LiveWindow.addChild(turnController, turnController.getD());
+		System.out.println(turnController.onTarget());
+		rotateToAngleRate = turnController.get();
+		System.out.println((double)rotateToAngleRate);
 		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+		Timer.delay(.005);
 	}
 }
