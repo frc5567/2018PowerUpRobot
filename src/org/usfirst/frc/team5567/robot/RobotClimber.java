@@ -62,16 +62,16 @@ public class RobotClimber {
 	 * Allows us to control the winch speed, at full speed or half speed.
 	 * 
 	 * @param driveSpeed The raw input from a trigger/stick that runs the motors.
-	 * @param fullSpeed If this is false, the motors will run at half the input speed.
+	 * @param halfSpeed If this is true, meaning the button is pressed, the motors will run at half the input speed.
 	 */
-	public void winchControl(double driveSpeed, boolean fullSpeed){
+	public void winchControl(double driveSpeed, boolean halfSpeed){
 		
-		if(fullSpeed = true){
+		if(halfSpeed = false){
 			
 			winchDrive.arcadeDrive(driveSpeed, 0, false);
 		}
 		
-		else if(fullSpeed = false){
+		else if(halfSpeed = true){
 			
 			winchDrive.arcadeDrive(driveSpeed/2, 0, false);
 		}
