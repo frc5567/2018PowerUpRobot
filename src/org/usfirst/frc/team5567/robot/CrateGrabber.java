@@ -29,6 +29,21 @@ public class CrateGrabber {
 	//	Declaring switch plate for detecting cube
 	SwitchPlate armSwitch;
 	
+	/**
+	 * Constructor for the Crate Grabber. Sets speeds and stuff.
+	 * 
+	 * @param leftMotorArm Port number for the PWMTalonSRX controlling the left arm.
+	 * @param rightMotorArm Port number for the PWMTalonSRX controlling the right arm.
+	 * @param forwardPortLeft Port number for moving the left Double Solenoid forwards.
+	 * @param backwardPortLeft Port number for moving the left Double Solenoid backwards.
+	 * @param forwardPortRight Port number for moving the right Double Solenoid forwards.
+	 * @param backwardPortRight Port number for moving the right Double Solenoid backwards.
+	 * @param forwardPortArm Port number for moving the vertical Double Solenoid up.
+	 * @param backwardPortArm Port number for moving the vertical Double Solenoid down.
+	 * @param cubeIntakeSpeed Ayy bruh fix this
+	 * @param cubeLaunchSpeed Ayy bruh fix this too
+	 */
+	
 	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft, int forwardPortRight, int backwardPortRight,
 			int forwardPortArm, int backwardPortArm, double cubeIntakeSpeed, double cubeLaunchSpeed){
 		//	Instantiating arm wheel speed controllers
@@ -59,7 +74,7 @@ public class CrateGrabber {
 		//dSolRight.set(Value.kForward);
 	}
 	
-	//	Method for puling in cubes
+	//	Method for pulling in cubes
 	public void cubeIntake(){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
