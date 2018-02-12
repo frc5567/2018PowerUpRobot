@@ -34,11 +34,13 @@ public class RobotClimber {
 	 */
 	public RobotClimber(int winchMotor1Port, int winchMotor2Port, int forwardPort, int backwardPort){
 		
+		//	Instantiating motors based off of ports from the constructor
 		winchMotor1 = new Talon(winchMotor1Port);
 		winchMotor2 = new Talon(winchMotor2Port);
 		
 		climberDSol = new DoubleSolenoid(forwardPort, backwardPort);
 		
+		//	Instantiating a drive train to be used as a winch
 		winchDrive = new DifferentialDrive(winchMotor1, winchMotor2);
 		
 	}
@@ -46,14 +48,14 @@ public class RobotClimber {
 	/**
 	 * Extends the Solenoid.
 	 */
-	public void ExtendSolenoid(){
+	public void extendSolenoid(){
 		climberDSol.set(Value.kForward);
 	}
 	
 	/**
 	 * Retracts the Solenoid.
 	 */
-	public void RetractSolenoid(){
+	public void retractSolenoid(){
 		climberDSol.set(Value.kReverse);
 	}
 	

@@ -158,6 +158,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	boolean firstFlag;
 	double rDistance;
 	double lDistance;
+	
+	//	Declares our Robot Climber
+	RobotClimber climber;
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -236,6 +239,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
 
 		pidDrive = new DriveHelp(ahrs, driveTrain, turnController, leftEncoder, rightEncoder);
+		
+		climber = new RobotClimber(6, 7, 6, 7);
 
 	}
 
@@ -482,6 +487,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 		else if (copilotController.getXButton()){
 			grabberArm.launchCube(cubeLaunchSpeed);
+		}
+		
+		//	Controls for the climber
+		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), copilotController.getBumper(Hand.kLeft));
+		
+		if(copilotController.getY(Hand.kLeft) > -0.9){
+			climber.extendSolenoid();
+		}
+		else if(copilotController.getY(Hand.kLeft) < 0.9){
+			climber.retractSolenoid();
 		}
 
 		/* While this button is held down, rotate to target angle.  
