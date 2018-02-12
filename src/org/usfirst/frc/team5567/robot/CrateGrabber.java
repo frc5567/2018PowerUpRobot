@@ -19,10 +19,6 @@ public class CrateGrabber {
 	DoubleSolenoid dSolRight;
 	DoubleSolenoid dSolArm;
 	
-	//	Declaring intake and launch speed variables
-	double intakeSpeed;
-	double launchSpeed;
-	
 	//	Declaring drive train used to control arm wheels
 	DifferentialDrive driveTrain;
 	
@@ -40,12 +36,10 @@ public class CrateGrabber {
 	 * @param backwardPortRight Port number for moving the right Double Solenoid backwards.
 	 * @param forwardPortArm Port number for moving the vertical Double Solenoid up.
 	 * @param backwardPortArm Port number for moving the vertical Double Solenoid down.
-	 * @param cubeIntakeSpeed Ayy bruh fix this
-	 * @param cubeLaunchSpeed Ayy bruh fix this too
 	 */
 	
 	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft, int forwardPortRight, int backwardPortRight,
-			int forwardPortArm, int backwardPortArm, double cubeIntakeSpeed, double cubeLaunchSpeed){
+			int forwardPortArm, int backwardPortArm){
 		//	Instantiating arm wheel speed controllers
 		leftArmMotor = new PWMTalonSRX(leftMotorArm);
 		rightArmMotor = new PWMTalonSRX(rightMotorArm);
@@ -75,13 +69,13 @@ public class CrateGrabber {
 	}
 	
 	//	Method for pulling in cubes
-	public void cubeIntake(){
+	public void cubeIntake(double intakeSpeed){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
 	
 	//	Method for launching cubes
-	public void launchCube(boolean launchButton){
-		driveTrain.tankDrive(-intakeSpeed, -intakeSpeed, false);
+	public void launchCube(double launchSpeed){
+		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}
 	
 	//	Stop intake

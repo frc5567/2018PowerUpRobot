@@ -1,5 +1,7 @@
 package org.usfirst.frc.team5567.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
+
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.CameraServer;
@@ -15,6 +17,7 @@ import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
@@ -56,6 +59,12 @@ import edu.wpi.first.wpilibj.Timer;
 public class Robot extends IterativeRobot implements PIDOutput {
 	//	global variables
 
+	//  Declaring strings for the auton based on FMS data
+	String autoSelected;
+	final String L = "AutoLeft";
+	final String R = "AutoRight";
+	final String Default = "AutoDefault";
+
 	//  Declaring drivetrain Speed Controllers
 	final SpeedController frontLeftMotor;
 	final SpeedController frontRightMotor;
@@ -68,9 +77,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 
 	//  Declaring Encoders for drivetrain motor control
-	//	final Encoder leftEncoder;
-	//	final Encoder rightEncoder;
-
+	final Encoder rightEncoder = new Encoder(5, 4, 6);
+	final Encoder leftEncoder = new Encoder(8, 7, 9);
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
 	//	final XboxController copilotController;
@@ -140,7 +148,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	CrateGrabber grabberArm;
 	boolean armFlag;
 	boolean raisedArm;
-	
+
+	DriveHelp pidDrive;
+
+	double cubeIntakeSpeed;
+	double cubeLaunchSpeed;
+
+	int autoCase;
+	boolean firstFlag;
+	double rDistance;
+	double lDistance;
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -159,9 +176,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-		//  Instantiating Drivetrain Encoders and assigned ports
-		//		leftEncoder = new Encoder(6, 7);
-		//		rightEncoder = new Encoder(8, 9);
+
 		//
 		//		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
@@ -211,9 +226,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rUltra = new Ultrasonic(3,2);
 		lUltra.setAutomaticMode(true);
 		 */
-		double cubeLaunchSpeed = 0.4;
-		double cubeIntakeSpeed = 0.3;
-		grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
+		cubeLaunchSpeed = 0.4;
+		cubeIntakeSpeed = 0.3;
+
+		autoCase = 0;
+		firstFlag = true;
+		rDistance = 0;
+		lDistance = 0;
+		//	grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
+
+		pidDrive = new DriveHelp(ahrs, driveTrain, turnController, leftEncoder, rightEncoder);
 
 	}
 
@@ -228,8 +250,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//  Instantiating pixy camera
 		myPixy = new PixyCrate();
 
-		//	Instantiates a USB camera
-		camera = CameraServer.getInstance().startAutomaticCapture();
+		//	Instantiates a USB camera must be commented out when no camera is present
+		//camera = CameraServer.getInstance().startAutomaticCapture();
 
 		//	Creates a Mat for outputting vision code
 		mat = new Mat();
@@ -238,108 +260,180 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		CubeHunter = new GripPipeline();
 
 		//	Creates a thread for running the Camera (please don't hurt me)
-		m_visionThread = new Thread(() -> {
-			//  Get the UsbCamera from CameraServer
-			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-
-			//  Set the resolution
-			camera.setResolution(640, 480);
-
-			//  Get a CvSink. This will capture Mats from the camera
-			CvSink cvSink = CameraServer.getInstance().getVideo();
-
-			// Setup a CvSource. This will send images back to the Dashboard
-			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
-
-			//  This cannot be 'true'. The program will never exit if it is. This
-			//  lets the robot stop this thread when restarting robot code or
-			//  deploying.
-			while (!Thread.interrupted()) {
-				//  Tell the CvSink to grab a frame from the camera and put it
-				//  in the source mat.  If there is an error notify the output.
-				if (cvSink.grabFrame(mat) == 0) {
-					//  Send the output the error.
-					outputStream.notifyError(cvSink.getError());
-					//  skip the rest of the current iteration
-					continue;
-				}
-			}
-
-			// Give the output stream a new image to display
-			outputStream.putFrame(mat);
-
-		});
-		
-		
+		//		m_visionThread = new Thread(() -> {
+		//			//  Get the UsbCamera from CameraServer
+		//			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+		//
+		//			//  Set the resolution
+		//			camera.setResolution(640, 480);
+		//
+		//			//  Get a CvSink. This will capture Mats from the camera
+		//			CvSink cvSink = CameraServer.getInstance().getVideo();
+		//
+		//			// Setup a CvSource. This will send images back to the Dashboard
+		//			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
+		//
+		//			//  This cannot be 'true'. The program will never exit if it is. This
+		//			//  lets the robot stop this thread when restarting robot code or
+		//			//  deploying.
+		//			while (!Thread.interrupted()) {
+		//				//  Tell the CvSink to grab a frame from the camera and put it
+		//				//  in the source mat.  If there is an error notify the output.
+		//				if (cvSink.grabFrame(mat) == 0) {
+		//					//  Send the output the error.
+		//					outputStream.notifyError(cvSink.getError());
+		//					//  skip the rest of the current iteration
+		//					continue;
+		//				}
+		//			}
+		//
+		//			// Give the output stream a new image to display
+		//			outputStream.putFrame(mat);
+		//
+		//		});	Must be commented out if there is no camera
+		leftEncoder.setDistancePerPulse(0.0092);
+		rightEncoder.setDistancePerPulse(0.0092);
 	}
 
 	public void autonomousInit(){
 		ahrs.zeroYaw();
-		turnController.free();
-		SmartDashboard.getNumber("KP",kP);
-		SmartDashboard.getNumber("KI",kI);
-		System.out.println(SmartDashboard.getNumber("KD",kD));
-		PIDController turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
-		//		turnController.setPID(kP, kI, kD);
-		turnController.setP(kP);turnController.setD(kD);turnController.setI(kI);
-		SmartDashboard.getNumber("Speed", testSpd);
+		
+		//	Gets FMS data, chooses Auto case based on it
+		String gameData;
+		gameData = DriverStation.getInstance().getGameSpecificMessage();
+		if(gameData.charAt(0) == 'L') {
+			//	Sets robot to use code to go left
+			autoSelected = L;
+			System.out.println("Left Auto Selected");
+		}
+		else if(gameData.charAt(0) == 'R') {
+			//	Sets robot to use code to go right
+			autoSelected = R;
+			System.out.println("Right Auto Selected");
+		}
+		else {
+			//	Sets robot to use default code
+			autoSelected = Default;
+			System.out.println("Default Auto Selected");
+		}
 
 	}
 
 	public void autonomousPeriodic(){
+		switch(autoSelected) {
+		case L:
+			//	Left auto Code
+			System.out.println("Left case");
+			break;
+		case R:
+			//	Right auto code
+			System.out.println("Right case");
+			break;
+		case Default:
+			//	Default code here
+			System.out.println("Default case");
+			break;
+		}
+
 		driveTrain.setSafetyEnabled(true);
-
-
-		//  Auton for testing vision
-		//  A method that turns the robot to face the target
-		//		myPixy.centerOnObject(driveTrain);
-		//		Timer.delay(.07);
-
-		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
-		/* While this button is held down, rotate to target angle.  
-		 * Since a Tank drive system cannot move forward simultaneously 
-		 * while rotating, all joystick input is ignored until this
-		 * button is released.
-		 */
-		if (!turnController.isEnabled()) {
-			turnController.setSetpoint(0);
-			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-			turnController.enable();
+		switch(autoCase){
+		case(0):
+			RotateDrive(-90);
+		break;
+		case(1):
+			StraightDrive(10, 0.2);
+		break;
+		case(2):
+			StraightDrive(10, 0.2);
+		break;
+		case(3):
+			RotateDrive(-90);
+		break;
+		case(4):
+			StraightDrive(10, 0.2);
+		break;
+		case(5):
+			RotateDrive(0);
+		break;
+		case(6):
+			StraightDrive(10, 0.2);
+		break;
+		case(7):
+			RotateDrive(90);
+		break;
+		default:
 		}
-		// driveTrain.arcadeDrive(SmartDashboard.getNumber("Speed", 0), rotateToAngleRate, false);
-		else if ( pilotController.getBButton()) {
-			//		 "Zero" the yaw (whatever direction the sensor is 
-			// pointing now will become the new "Zero" degrees.
-
-			ahrs.zeroYaw();
-		} else if ( pilotController.getRawButton(2)) {
-			//				 While this button is held down, the robot is in
-			//		 * "drive straight" mode.  Whatever direction the robot
-			//		 * was heading when "drive straight" mode was entered
-			//		 * will be maintained.  The average speed of both 
-			//		 * joysticks is the magnitude of motion.
-
-			if(!turnController.isEnabled()) {
-				// Acquire current yaw angle, using this as the target angle.
-				turnController.setSetpoint(ahrs.getYaw());
-				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-				turnController.enable();
-			}
-			double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
-			double leftStickValue = magnitude + rotateToAngleRate;
-			double rightStickValue = magnitude - rotateToAngleRate;
-			driveTrain.tankDrive(leftStickValue,  rightStickValue);
-		} else {
-			//				 If the turn controller had been enabled, disable it now. 
-			if(turnController.isEnabled()) {
-				turnController.disable();
-			}
-			//			 Standard tank drive, no driver assistance. 
-			driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
-		}
-
+		//		if (functionReturn) {
+		//			//turnController.disable();
+		//		}
+		//		//  Auton for testing vision
+		//		//  A method that turns the robot to face the target
+		//		//	myPixy.centerOnObject(driveTrain);
+		//		//	Timer.delay(.07);
+		//		System.out.println(pidDrive.autoState + " [angle]: " + ahrs.getAngle());
+		////		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
+		//
 		Timer.delay(0.05);		// wait for a motor update time
 	}
+
+	public void StraightDrive(double targetDistance, double speed){
+		if(firstFlag){
+			leftEncoder.reset();
+			rightEncoder.reset();
+			firstFlag = false;
+			System.out.println("resetting");
+			rDistance = 0;
+			lDistance = 0;
+			turnController.setSetpoint(0);
+		}
+		if (!turnController.isEnabled()) {
+			//rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		rDistance -= rightEncoder.getDistance();
+		//	This encoder must be inverted so that we get proper values
+		lDistance += leftEncoder.getDistance();
+		System.out.println(rDistance + "   " + lDistance);
+		rotateToAngleRate = turnController.get();
+		//	read encoder values
+		//	determine how far we have traveled
+		//	determine whether target distance was reached or not
+		if(targetDistance <= leftEncoder.getDistance() || targetDistance <= rightEncoder.getDistance()){
+			//			if target distance was reached stop and return true
+			driveTrain.arcadeDrive(0, 0, false);
+			autoCase++;
+			firstFlag = true;
+		}
+		else{
+			//			if target distance not reached drive forward
+			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
+		}
+	}
+
+	public void RotateDrive(double targetAngle){
+		if(firstFlag){
+			firstFlag = false;
+			turnController.setSetpoint(targetAngle);
+		}
+		if (!turnController.isEnabled()) {
+			//	rotateRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		rotateToAngleRate = turnController.get();
+
+		System.out.println(turnController.getSetpoint());
+		System.out.println(rotateToAngleRate);
+		//	Read gyro values
+		//	Determine if we have turned to target
+		if(ahrs.getAngle() >= targetAngle){
+			//	If we have, stop and return true
+			autoCase++;
+			firstFlag = true;
+		}
+		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+	}
+
+
 
 	public void teleopInit(){
 		driveTrain.setSafetyEnabled(true);
@@ -377,19 +471,62 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.lowerArm();
 			}
 		}*/
-		
+
 		if(copilotController.getYButton()){
 			if(grabberArm.detectCube() == false){
-			grabberArm.cubeIntake();
+				grabberArm.cubeIntake(cubeIntakeSpeed);
 			}
 			else if(grabberArm.detectCube()){
-			grabberArm.stopIntake();
+				grabberArm.stopIntake();
 			}
 		}
 		else if (copilotController.getXButton()){
-			grabberArm.launchCube(true);
+			grabberArm.launchCube(cubeLaunchSpeed);
 		}
-		
+
+		/* While this button is held down, rotate to target angle.  
+		 * Since a Tank drive system cannot move forward simultaneously 
+		 * while rotating, all joystick input is ignored until this
+		 * button is released.
+		 */
+		if (!turnController.isEnabled()) {
+			turnController.setSetpoint(0);
+			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+		// driveTrain.arcadeDrive(SmartDashboard.getNumber("Speed", 0), rotateToAngleRate, false);
+		else if ( pilotController.getBButton()) {
+			//		 "Zero" the yaw (whatever direction the sensor is 
+			// pointing now will become the new "Zero" degrees.
+
+			ahrs.zeroYaw();
+		} 
+		else if ( pilotController.getRawButton(2)) {
+			//				 While this button is held down, the robot is in
+			//		 * "drive straight" mode.  Whatever direction the robot
+			//		 * was heading when "drive straight" mode was entered
+			//		 * will be maintained.  The average speed of both 
+			//		 * joysticks is the magnitude of motion.
+
+			if(!turnController.isEnabled()) {
+				// Acquire current yaw angle, using this as the target angle.
+				turnController.setSetpoint(ahrs.getYaw());
+				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+				turnController.enable();
+			}
+			double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
+			double leftStickValue = magnitude + rotateToAngleRate;
+			double rightStickValue = magnitude - rotateToAngleRate;
+			driveTrain.tankDrive(leftStickValue,  rightStickValue);
+		} 
+		else {
+			//	If the turn controller had been enabled, disable it now. 
+			if(turnController.isEnabled()) {
+				turnController.disable();
+			}
+			//	Standard tank drive, no driver assistance. 
+			driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
+		}
 
 	}
 
