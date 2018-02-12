@@ -79,16 +79,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//  Declaring Encoders for drivetrain motor control
 	final Encoder rightEncoder = new Encoder(5, 4, 6);
 	final Encoder leftEncoder = new Encoder(8, 7, 9);
+
 	//  Declaring Xbox controllers for controlling robot
 	final XboxController pilotController;
-	//	final XboxController copilotController;
-
+	final XboxController copilotController;
 
 	//  Declaring Drivetrain for moving the robot
 	final DifferentialDrive driveTrain;
 
+	//	Declaring NavX gyro for PID controller
 	AHRS ahrs;																			
 
+	//	Declaring variables for the PID controller
 	PIDController turnController;
 	double rotateToAngleRate;
 
@@ -98,8 +100,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	/* controllers by displaying a form where you can enter new P, I,  */
 	/* and D constants and test the mechanism.                         */
 
+	//	These are the default values -UNUSED-
 	//	static final double kP = 2; //0.015;
 	//	static final double kI = 5; //0.00
+	//	static final double kD = 0.035;
+
 	//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
 	double kD = 0.105;//.035
 	final double kF = 0.00;
@@ -108,18 +113,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	double kI = 0.00012;
 
 	//	Constants for PID Controller for moving straight
-	//double kD = 0.255;//.035
-	//final double kF = 0.00;
+	//	double kD = 0.255;//.035
+	//	final double kF = 0.00;
 
-	//double kP = 0.0175;
-	//double kI = 0.0085;
+	//	double kP = 0.0175;
+	//	double kI = 0.0085;
 
-	//static final double kD = 0.035;
+	//	Declaring PID variables 
 	double testSpd = .4;
 	double newSpd = 0;
 	static final double kToleranceDegrees = 1;    
-
-	//static final double kTargetAngleDegrees = 360.0f;
 	static final double kTargetAngleDegrees = 90;
 
 	//  Declaring timer used in auto
@@ -129,38 +132,41 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	Ultrasonic lUltra;
 	Ultrasonic rUltra;
 	 */
+
 	//  Declaring Pixy camera used for vision
 	PixyCrate myPixy;
 
 	//	Declaring GRIP method
 	GripPipeline CubeHunter;
 
+	//	Declaring the USB Camera
 	UsbCamera camera;
 
+	//	Declaring the vision thread
 	Thread m_visionThread;
 
+	//	Declaring the mat for vision
 	Mat mat;
 
+	//	Declaring the Network Table for GRIP outputs
 	NetworkTable gripOutputs;
 
-	XboxController copilotController;
-
+	//	Declaring variables for the Crate Grabber Arm
 	CrateGrabber grabberArm;
 	boolean armFlag;
 	boolean raisedArm;
-
-	DriveHelp pidDrive;
-
 	double cubeIntakeSpeed;
 	double cubeLaunchSpeed;
 
+	//	Declares variables for auton driving
 	int autoCase;
 	boolean firstFlag;
 	double rDistance;
 	double lDistance;
-	
+
 	//	Declares our Robot Climber
 	RobotClimber climber;
+
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -179,16 +185,14 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
 		rightMotors = new SpeedControllerGroup(frontRightMotor, backRightMotor);
 
-
-		//
-		//		//  Instantiating Xbox Controllers
+		//  Instantiating Xbox Controllers
 		pilotController = new XboxController (0);
 		copilotController = new XboxController (1);
 
 		//  Instantiating drivetrain
 		driveTrain = new DifferentialDrive(leftMotors, rightMotors);
 
-
+		//	NavX
 		try {
 			/***********************************************************************
 			 * navX-MXP:
@@ -205,6 +209,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		} catch (RuntimeException ex ) {
 			DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
 		}
+
 		//turnController = new PIDController(kP, kI, kD, kF, ahrs, this);
 		turnController = new PIDController(kP, kI, kD, kF, ahrs, this, 0.02);
 		turnController.setInputRange(-180.0f,  180.0f);
@@ -238,8 +243,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		lDistance = 0;
 		//	grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
 
-		pidDrive = new DriveHelp(ahrs, driveTrain, turnController, leftEncoder, rightEncoder);
-		
+		//	pidDrive = new DriveHelp(ahrs, driveTrain, turnController, leftEncoder, rightEncoder);
+
 		climber = new RobotClimber(6, 7, 6, 7);
 
 	}
@@ -302,7 +307,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void autonomousInit(){
 		ahrs.zeroYaw();
-		
+
 		//	Gets FMS data, chooses Auto case based on it
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
@@ -381,60 +386,91 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		Timer.delay(0.05);		// wait for a motor update time
 	}
 
+	/**
+	 * Method for driving straight in auton
+	 * @param targetDistance The distance you want to travel
+	 * @param speed The speed that you want the robot to travel at
+	 */
 	public void StraightDrive(double targetDistance, double speed){
+
+		//	Resets the encoders and the distance traveled the first time this enters
 		if(firstFlag){
 			leftEncoder.reset();
 			rightEncoder.reset();
-			firstFlag = false;
-			System.out.println("resetting");
+
 			rDistance = 0;
 			lDistance = 0;
+
+			System.out.println("resetting");
+
+			// Sets the Setpoint so the robot travels straight
 			turnController.setSetpoint(0);
+
+			firstFlag = false;
 		}
+
+		//	Enables the turn controller if it is not already
 		if (!turnController.isEnabled()) {
 			//rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
-		rDistance -= rightEncoder.getDistance();
+
+		//	Gets the total distance from the encoders
 		//	This encoder must be inverted so that we get proper values
+		rDistance -= rightEncoder.getDistance();
 		lDistance += leftEncoder.getDistance();
+
+		//	Prints distance from encoders
 		System.out.println(rDistance + "   " + lDistance);
+
+		//	Gets rate of rotation from PID
 		rotateToAngleRate = turnController.get();
-		//	read encoder values
-		//	determine how far we have traveled
-		//	determine whether target distance was reached or not
+
+		//	Stops robot if target distance was reached and moves to the next case
 		if(targetDistance <= leftEncoder.getDistance() || targetDistance <= rightEncoder.getDistance()){
-			//			if target distance was reached stop and return true
 			driveTrain.arcadeDrive(0, 0, false);
 			autoCase++;
 			firstFlag = true;
 		}
+
+		//	Drives straight forward if target is not reached
 		else{
-			//			if target distance not reached drive forward
 			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
 		}
 	}
 
+	/**
+	 * Method for rotating into the target angle in auton
+	 * @param targetAngle The angle we want to turn to
+	 */
 	public void RotateDrive(double targetAngle){
+		//  If this is the first time entering this method, sets target angle
 		if(firstFlag){
-			firstFlag = false;
 			turnController.setSetpoint(targetAngle);
+			firstFlag = false;
 		}
+
+		//	 If the turn controller is not enabled, enable turn controller
 		if (!turnController.isEnabled()) {
 			//	rotateRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
+
+		//	Sets the speed the the robot rotates at from the PID
 		rotateToAngleRate = turnController.get();
 
+		//	Prints setpoint and rotation rate
 		System.out.println(turnController.getSetpoint());
 		System.out.println(rotateToAngleRate);
-		//	Read gyro values
-		//	Determine if we have turned to target
-		if(ahrs.getAngle() >= targetAngle){
+
+		//	If the PID has slowed down to a certain point, exit the case
+		if(rotateToAngleRate < 0.0125 && rotateToAngleRate > -0.0125){
 			//	If we have, stop and return true
 			autoCase++;
 			firstFlag = true;
 		}
+
+		//	Makes the robot turn to angle
 		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
 	}
 
@@ -451,9 +487,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 * Runs the motors with tank steering.
 	 */
 	public void teleopPeriodic() {
-		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight) - pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
+
+		//	Drives robot based on joysticks - inverted because y output on sticks is also inverted
+		driveTrain.tankDrive(-pilotController.getY(Hand.kLeft), -pilotController.getY(Hand.kRight), true);
 		Timer.delay(0.1);
 
+		//	
 		if(armFlag == false){
 			if(copilotController.getAButton()){
 				grabberArm.closeGrabber(true);
@@ -466,7 +505,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				armFlag = false;
 			}
 		}
-		/*if(raisedArm == false){
+
+		//	Prints whether the arms should be open or closed
+		System.out.println(armFlag);
+		/*	Commented out because there isn't cuurently a way to raise the arm
+		 * if(raisedArm == false){
 			if(copilotController.getBButton()){
 				grabberArm.raiseArm();
 			}
@@ -477,21 +520,25 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			}
 		}*/
 
+		//	If there is not a cube in the grabber and Y button is pressed intake cube
 		if(copilotController.getYButton()){
 			if(grabberArm.detectCube() == false){
 				grabberArm.cubeIntake(cubeIntakeSpeed);
 			}
+			//	If cube is detected stop intake 
 			else if(grabberArm.detectCube()){
 				grabberArm.stopIntake();
 			}
 		}
+		//	Launches cube when X button is pressed
 		else if (copilotController.getXButton()){
 			grabberArm.launchCube(cubeLaunchSpeed);
 		}
-		
+
 		//	Controls for the climber
 		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), copilotController.getBumper(Hand.kLeft));
-		
+
+		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
 		if(copilotController.getY(Hand.kLeft) > -0.9){
 			climber.extendSolenoid();
 		}
