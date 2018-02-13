@@ -4,7 +4,7 @@ package org.usfirst.frc.team5567.robot;
 
 public class PixyPacket {
 	
-	//	Doubles for storing data from arduino
+	//	Doubles for storing data from the Pixy Camera passed through the Arduino to the RoboRIO
 	double x, y;
 	double area;
 

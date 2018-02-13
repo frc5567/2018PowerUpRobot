@@ -32,32 +32,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 
-/**
- * This is a demo program showing the use of the navX MXP to implement
- * the "rotate to angle", "zero yaw" and "drive straight" on a Tank
- * drive system.
- *
- * If Left Joystick Button 0 is pressed, a "turn" PID controller will 
- * set to point to a target angle, and while the button is held the drive
- * system will rotate to that angle (NOTE:  tank drive systems cannot simultaneously
- * move forward/reverse while rotating).
- *
- * This example also includes a feature allowing the driver to "reset"
- * the "yaw" angle.  When the reset occurs, the new gyro angle will be
- * 0 degrees.  This can be useful in cases when the gyro drifts, which
- * doesn't typically happen during a FRC match, but can occur during
- * long practice sessions.
- *
- * Finally, if Left Joystick button 2 is held, the "turn" PID controller will
- * be set to point to the current heading, and while the button is held,
- * the driver system will continue to point in the direction.  The robot 
- * can drive forward and backward (the magnitude of motion is the average
- * of the Y axis values on the left and right joysticks).
- *
- * Note that the PID Controller coefficients defined below will need to
- * be tuned for your drive system.
- */
-
+//  This is the main robot that we use in competition.
 public class Robot extends IterativeRobot implements PIDOutput {
 	//	global variables
 
@@ -170,7 +145,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	double cubeIntakeSpeed;
 	double cubeLaunchSpeed;
 
-	//	Declares variables for auton driving
+	//	Declares variables for auton driving - first flag is used to determine if it is the first time we have entered the method that case
 	int autoCase;
 	boolean firstFlag;
 	double rDistance;
@@ -253,9 +228,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		firstFlag = true;
 		rDistance = 0;
 		lDistance = 0;
-		//	grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5, cubeLaunchSpeed, cubeIntakeSpeed);
-
-		//	pidDrive = new DriveHelp(ahrs, driveTrain, turnController, leftEncoder, rightEncoder);
+		grabberArm = new CrateGrabber(4, 5, 0, 1, 2, 3, 4, 5);
 
 		climber = new RobotClimber(6, 7, 6, 7);
 
@@ -263,25 +236,24 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	@Override
 	public void robotInit(){
-		//System.out.println(SmartDashboard.getNumber("Speed", -10));
-
-		//SmartDashboard.putNumber("kP", turnController.getP());
 
 		//lUltra.setEnabled(true);
 		//rUltra.setEnabled(true);
+		
 		//  Instantiating pixy camera
 		myPixy = new PixyCrate();
 
 		//	Instantiates a USB camera must be commented out when no camera is present
 		//camera = CameraServer.getInstance().startAutomaticCapture();
 
-		//	Creates a Mat for outputting vision code
+		//	Creates a Mat for storing images vision code
 		mat = new Mat();
 
-		//	Creates a GRIP pipeline for filtering vision code
+		//	Creates a GRIP pipeline for processing the images received from the USB Camera
 		CubeHunter = new GripPipeline();
 
-		//	Creates a thread for running the Camera (please don't hurt me)
+		//  Must be commented out if there is no camera
+		//	Creates a thread for running the Camera
 		//		m_visionThread = new Thread(() -> {
 		//			//  Get the UsbCamera from CameraServer
 		//			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
@@ -312,7 +284,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//			// Give the output stream a new image to display
 		//			outputStream.putFrame(mat);
 		//
-		//		});	Must be commented out if there is no camera
+		//		});
+		
+		//  Sets up distance for pulse so getPulse is set in inches
 		leftEncoder.setDistancePerPulse(0.0092);
 		rightEncoder.setDistancePerPulse(0.0092);
 	}
@@ -353,57 +327,64 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void autonomousPeriodic(){
 		switch(autoSelected) {
 		case L:
-			//	Left auto Code
+			//	Left auto Code here
 			System.out.println("Left case");
 			break;
 		case R:
-			//	Right auto code
+			//	Right auto code here
 			System.out.println("Right case");
 			break;
 		case Default:
-			//	Default code here
+			//	Default auto code here
 			System.out.println("Default case");
 			break;
 		}
 
 		driveTrain.setSafetyEnabled(true);
+		
+		//  A case based test auton for driving in a square
 		switch(autoCase){
+		//  Turns 90 degrees counterclockwise
 		case(0):
 			RotateDrive(-90);
 		break;
+		//  Moves forward 10 inches at a velocity of 0.2
 		case(1):
 			StraightDrive(10, 0.2);
 		break;
+		//  Moves forward 10 inches at a velocity of 0.2
 		case(2):
 			StraightDrive(10, 0.2);
 		break;
+		//  Turns 90 degrees counterclockwise
 		case(3):
 			RotateDrive(-90);
 		break;
+		//  Moves forward 10 inches at a velocity of 0.2
 		case(4):
 			StraightDrive(10, 0.2);
 		break;
+		//  Turns 0 degrees
 		case(5):
 			RotateDrive(0);
 		break;
+		//  Moves forward 10 inches at a velocity of 0.2
 		case(6):
 			StraightDrive(10, 0.2);
 		break;
+		//  Turns 90 degrees clockwise
 		case(7):
 			RotateDrive(90);
 		break;
 		default:
 		}
-		//		if (functionReturn) {
-		//			//turnController.disable();
-		//		}
-		//		//  Auton for testing vision
-		//		//  A method that turns the robot to face the target
-		//		//	myPixy.centerOnObject(driveTrain);
-		//		//	Timer.delay(.07);
-		//		System.out.println(pidDrive.autoState + " [angle]: " + ahrs.getAngle());
-		////		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
-		//
+		
+		//  Commented out for testing purposes
+		//			Auton for testing vision
+		//			A method that turns the robot to face the target
+		//			myPixy.centerOnObject(driveTrain);
+		//			Timer.delay(.07);
+	
 		//		Instantiating GRIP Network Tables
 		gripOutputs = gripInstance.getTable("GRIP/myBlobsReport");
 		xGrip = new NetworkTableEntry(gripInstance, 0);
@@ -417,8 +398,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	/**
 	 * Method for driving straight in auton
-	 * @param targetDistance The distance you want to travel
-	 * @param speed The speed that you want the robot to travel at
+	 * @param targetDistance The distance you want to travel (in inches)
+	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
 	 */
 	public void StraightDrive(double targetDistance, double speed){
 
@@ -440,7 +421,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Enables the turn controller if it is not already
 		if (!turnController.isEnabled()) {
-			//rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+			rotateToAngleRate = 0;
 			turnController.enable();
 		}
 
@@ -470,7 +451,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	/**
 	 * Method for rotating into the target angle in auton
-	 * @param targetAngle The angle we want to turn to
+	 * @param targetAngle The angle we want to turn to (in degrees)
 	 */
 	public void RotateDrive(double targetAngle){
 		//  If this is the first time entering this method, sets target angle
@@ -513,7 +494,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	}
 
 	/**
-	 * Runs the motors with tank steering.
+	 *  The code that runs periodically while the robot is in teleop mode
 	 */
 	public void teleopPeriodic() {
 
@@ -521,13 +502,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		driveTrain.tankDrive(-pilotController.getY(Hand.kLeft), -pilotController.getY(Hand.kRight), true);
 		Timer.delay(0.1);
 
-		//	
+		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
 		if(armFlag == false){
 			if(copilotController.getAButton()){
 				grabberArm.closeGrabber(true);
 				armFlag = true;
 			}
 		}
+		
+		//  If armFlag is true and the A button on the copilot controller is pressed, open the crate arm
 		else if(armFlag){
 			if(copilotController.getAButton()){
 				grabberArm.openGrabber(true);
@@ -535,9 +518,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			}
 		}
 
-		//	Prints whether the arms should be open or closed
+		//	Prints whether the arms should be open or closed where open is false and closed is true
 		System.out.println(armFlag);
-		/*	Commented out because there isn't cuurently a way to raise the arm
+		
+		/*	Commented out because there isn't currently a way to raise the arm
 		 * if(raisedArm == false){
 			if(copilotController.getBButton()){
 				grabberArm.raiseArm();
@@ -549,12 +533,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			}
 		}*/
 
-		//	If there is not a cube in the grabber and Y button is pressed intake cube
+		//	If there is not a cube in the grabber and Y button is pressed turn motors on to intake cube
 		if(copilotController.getYButton()){
 			if(grabberArm.detectCube() == false){
 				grabberArm.cubeIntake(cubeIntakeSpeed);
 			}
-			//	If cube is detected stop intake 
+			//	If cube is detected stop intake motors
 			else if(grabberArm.detectCube()){
 				grabberArm.stopIntake();
 			}
@@ -564,61 +548,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			grabberArm.launchCube(cubeLaunchSpeed);
 		}
 
-		//	Controls for the climber
-		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), copilotController.getBumper(Hand.kLeft));
+		//	Controls for the climber based on copilot pressing the left trigger and right bumper
+		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), copilotController.getBumper(Hand.kRight));
 
 		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
+		//  The comparison is inverted due to the Y-stick naturally being inverted
 		if(copilotController.getY(Hand.kLeft) > -0.9){
 			climber.extendSolenoid();
 		}
 		else if(copilotController.getY(Hand.kLeft) < 0.9){
 			climber.retractSolenoid();
 		}
-
-		/* While this button is held down, rotate to target angle.  
-		 * Since a Tank drive system cannot move forward simultaneously 
-		 * while rotating, all joystick input is ignored until this
-		 * button is released.
-		 */
-		if (!turnController.isEnabled()) {
-			turnController.setSetpoint(0);
-			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-			turnController.enable();
-		}
-		// driveTrain.arcadeDrive(SmartDashboard.getNumber("Speed", 0), rotateToAngleRate, false);
-		else if ( pilotController.getBButton()) {
-			//		 "Zero" the yaw (whatever direction the sensor is 
-			// pointing now will become the new "Zero" degrees.
-
-			ahrs.zeroYaw();
-		} 
-		else if ( pilotController.getRawButton(2)) {
-			//				 While this button is held down, the robot is in
-			//		 * "drive straight" mode.  Whatever direction the robot
-			//		 * was heading when "drive straight" mode was entered
-			//		 * will be maintained.  The average speed of both 
-			//		 * joysticks is the magnitude of motion.
-
-			if(!turnController.isEnabled()) {
-				// Acquire current yaw angle, using this as the target angle.
-				turnController.setSetpoint(ahrs.getYaw());
-				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-				turnController.enable();
-			}
-			double magnitude = (pilotController.getY(Hand.kLeft) + pilotController.getY(Hand.kRight)) / 2;
-			double leftStickValue = magnitude + rotateToAngleRate;
-			double rightStickValue = magnitude - rotateToAngleRate;
-			driveTrain.tankDrive(leftStickValue,  rightStickValue);
-		} 
-		else {
-			//	If the turn controller had been enabled, disable it now. 
-			if(turnController.isEnabled()) {
-				turnController.disable();
-			}
-			//	Standard tank drive, no driver assistance. 
-			driveTrain.tankDrive(pilotController.getY(Hand.kLeft), pilotController.getY(Hand.kRight));
-		}
-
 	}
 
 	@Override
@@ -654,16 +594,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				turnController.enable();
 			}
 
-			// 		CubeHunter.process(mat);
-			//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
-			//	Prints the location of the blobs (maybe)
-			//		System.out.println(test.dump());
-
+			//  Runs our GRIP pipeline given the webcam input
+			//  Mat given by vision thread
+			CubeHunter.process(mat);
+			
+			//  Used to edit PID constants in the LiveWindow Dashboard
 			//		Sendable sendable = null;
 			//		LiveWindow.add(sendable);
 			//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
 			//		LiveWindow.add(turnController.getSubsystem());
 			//		LiveWindow.addChild(turnController, turnController.getD());
+			
+			
 			System.out.println(turnController.onTarget());
 			rotateToAngleRate = turnController.get();
 			System.out.println((double)rotateToAngleRate);

@@ -16,7 +16,9 @@ public class PixyCrate {
 	public static final double DRIVE_SPEED = 0.2;
 	
 	double maxArea = 0;
-	boolean firstFlag = true;
+	
+	//	Used to determine if it is the first time through so it avoids a NullPointerException
+	boolean firstPixyFlag = true;
 	//	Sets up the I2C interface
 	M_I2C i2c = new M_I2C();
 
@@ -33,8 +35,8 @@ public class PixyCrate {
 		pkt = i2c.getPixy();
 
 		//	Checks if first time through
-		if(firstFlag){
-			firstFlag = false;
+		if(firstPixyFlag){
+			firstPixyFlag = false;
 			maxArea = pkt.area;
 		}
 		//	Sets maxArea so we have a stable value to evaluate
