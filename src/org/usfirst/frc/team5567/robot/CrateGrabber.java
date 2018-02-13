@@ -1,5 +1,6 @@
 package org.usfirst.frc.team5567.robot;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
@@ -23,7 +24,7 @@ public class CrateGrabber {
 	DifferentialDrive driveTrain;
 	
 	//	Declaring switch plate for detecting cube
-	SwitchPlate armSwitch;
+	DigitalInput armSwitch;
 	
 	/**
 	 * Constructor for the Crate Grabber. Sets speeds and stuff.
@@ -47,13 +48,13 @@ public class CrateGrabber {
 		//	Instantiating drive train
 		driveTrain = new DifferentialDrive(leftArmMotor, rightArmMotor);
 		
-		//	Instantiating solonoid
+		//	Instantiating solenoid
 		dSolLeft = new DoubleSolenoid(forwardPortLeft, backwardPortLeft);
 		dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
 		dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
 		
-		//	Instantiating switchPlate
-		armSwitch = new SwitchPlate(0);
+		//	Instantiating armswitch
+		armSwitch = new DigitalInput(0);
 	}
 	
 	//	Method for opening the arms
