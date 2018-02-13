@@ -28,6 +28,8 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
 
 /**
@@ -150,6 +152,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	//	Declaring the Network Table for GRIP outputs
 	NetworkTable gripOutputs;
+	NetworkTableInstance gripInstance;
+	NetworkTableEntry xGrip;
+	NetworkTableEntry yGrip;
+	NetworkTableEntry areaGrip;
+
+
+	//	Declares array for storing Grip values
+	double[] gripX;
+	double[] defaultVal;
 
 	//	Declaring variables for the Crate Grabber Arm
 	CrateGrabber grabberArm;
@@ -383,6 +394,14 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//		System.out.println(pidDrive.autoState + " [angle]: " + ahrs.getAngle());
 		////		System.out.println("kP:\t"+turnController.getP()+"kI:\t"+turnController.getI()+"kD:\t"+turnController.getD());
 		//
+		//		Instantiating GRIP Network Tables
+		gripOutputs = gripInstance.getTable("GRIP/myBlobsReport");
+		xGrip = new NetworkTableEntry(gripInstance, 0);
+		yGrip = new NetworkTableEntry(gripInstance, 1);
+		areaGrip = new NetworkTableEntry(gripInstance, 2);
+		defaultVal = new double[1];
+		defaultVal[1] = -1;
+
 		Timer.delay(0.05);		// wait for a motor update time
 	}
 
@@ -609,32 +628,43 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			turnController.enable();
 		}
 		 */
-		turnController.reset();
-		//System.out.println(SmartDashboard.getNumber("Speed", -10));
-	}
-
-
-	public void testPeriodic(){
-		if (!turnController.isEnabled()) {
-			turnController.setSetpoint(kTargetAngleDegrees);
-			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-			turnController.enable();
+		gripX = new double[xGrip.getDoubleArray(defaultVal).length];
+		for(int i = 0; i < xGrip.getDoubleArray(defaultVal).length; i++){
+			gripX[i] = -1;
+			turnController.reset();
+			//System.out.println(SmartDashboard.getNumber("Speed", -10));
 		}
 
-		// 		CubeHunter.process(mat);
-		//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
-		//	Prints the location of the blobs (maybe)
-		//		System.out.println(test.dump());
 
-		//		Sendable sendable = null;
-		//		LiveWindow.add(sendable);
-		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
-		//		LiveWindow.add(turnController.getSubsystem());
-		//		LiveWindow.addChild(turnController, turnController.getD());
-		System.out.println(turnController.onTarget());
-		rotateToAngleRate = turnController.get();
-		System.out.println((double)rotateToAngleRate);
-		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
-		Timer.delay(.005);
+		public void testPeriodic(){
+			if (!turnController.isEnabled()) {
+				turnController.setSetpoint(kTargetAngleDegrees);
+				rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+				turnController.enable();
+			}
+
+			// 		CubeHunter.process(mat);
+			//		MatOfKeyPoint test = CubeHunter.findBlobsOutput();
+			//	Prints the location of the blobs (maybe)
+			//		System.out.println(test.dump());
+
+			//		Sendable sendable = null;
+			//		LiveWindow.add(sendable);
+			//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
+			//		LiveWindow.add(turnController.getSubsystem());
+			//		LiveWindow.addChild(turnController, turnController.getD());
+			System.out.println(turnController.onTarget());
+			rotateToAngleRate = turnController.get();
+			System.out.println((double)rotateToAngleRate);
+			driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+			Timer.delay(.005);
+
+			gripX = xGrip.getDoubleArray(gripX);
+
+			//	TODO Needs to be fixed, will not print values
+			for (double e:gripX){
+				System.out.print(e + "\t");
+			}
+			System.out.println();
+		}
 	}
-}
