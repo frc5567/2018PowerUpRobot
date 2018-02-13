@@ -68,12 +68,19 @@ public class CrateGrabber {
 		//dSolRight.set(Value.kForward);
 	}
 	
-	//	Method for pulling in cubes
+	/**
+	 * A method for intaking cubes
+	 * @param intakeSpeed The speed at which we want cubes to be taken in
+	 */
 	public void cubeIntake(double intakeSpeed){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
 	
-	//	Method for launching cubes
+	/**
+	 * A method for launching cubes
+	 * Launch speed is inverted in class to cause the motors to spin the reverse of intake
+	 * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
+	 */
 	public void launchCube(double launchSpeed){
 		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}
