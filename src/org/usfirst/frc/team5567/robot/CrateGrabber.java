@@ -1,5 +1,6 @@
 package org.usfirst.frc.team5567.robot;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
@@ -23,7 +24,7 @@ public class CrateGrabber {
 	DifferentialDrive driveTrain;
 	
 	//	Declaring switch plate for detecting cube
-	SwitchPlate armSwitch;
+	DigitalInput armSwitch;
 	
 	/**
 	 * Constructor for the Crate Grabber. Sets speeds and stuff.
@@ -47,13 +48,13 @@ public class CrateGrabber {
 		//	Instantiating drive train
 		driveTrain = new DifferentialDrive(leftArmMotor, rightArmMotor);
 		
-		//	Instantiating solonoid
+		//	Instantiating solenoid
 		dSolLeft = new DoubleSolenoid(forwardPortLeft, backwardPortLeft);
 		dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
 		dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
 		
-		//	Instantiating switchPlate
-		armSwitch = new SwitchPlate(0);
+		//	Instantiating armswitch
+		armSwitch = new DigitalInput(0);
 	}
 	
 	//	Method for opening the arms
@@ -68,12 +69,19 @@ public class CrateGrabber {
 		//dSolRight.set(Value.kForward);
 	}
 	
-	//	Method for pulling in cubes
+	/**
+	 * A method for intaking cubes
+	 * @param intakeSpeed The speed at which we want cubes to be taken in
+	 */
 	public void cubeIntake(double intakeSpeed){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
 	
-	//	Method for launching cubes
+	/**
+	 * A method for launching cubes
+	 * Launch speed is inverted in class to cause the motors to spin the reverse of intake
+	 * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
+	 */
 	public void launchCube(double launchSpeed){
 		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}

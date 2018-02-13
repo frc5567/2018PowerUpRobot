@@ -20,7 +20,7 @@ public class RobotClimber {
 	//	Declaring double Solenoid
 	DoubleSolenoid climberDSol;
 	
-	//	It's that thing
+	//	Declaring drive train used to control winch
 	final DifferentialDrive winchDrive;
 	
 	
@@ -28,7 +28,7 @@ public class RobotClimber {
 	 * Constructor for the climber. Instantiates the winch motors and the Solenoid ports.
 	 * 
 	 * @param winchMotor1Port Port number for the first winch motor.
-	 * @param winchMotor2Port Port number for the sencond winch motor.
+	 * @param winchMotor2Port Port number for the second winch motor.
 	 * @param forwardPort Port number for moving the Solenoid forwards.
 	 * @param backwardPort Port number for moving the Solenoid backwards.
 	 */
