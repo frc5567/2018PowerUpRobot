@@ -631,9 +631,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		gripX = new double[xGrip.getDoubleArray(defaultVal).length];
 		for(int i = 0; i < xGrip.getDoubleArray(defaultVal).length; i++){
 			gripX[i] = -1;
-			turnController.reset();
-			//System.out.println(SmartDashboard.getNumber("Speed", -10));
 		}
+		turnController.reset();
+			//System.out.println(SmartDashboard.getNumber("Speed", -10));
+	}
 
 
 		public void testPeriodic(){
