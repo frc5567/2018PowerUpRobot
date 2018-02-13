@@ -66,6 +66,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	final String L = "AutoLeft";
 	final String R = "AutoRight";
 	final String Default = "AutoDefault";
+	String gameData;
 
 	//  Declaring drivetrain Speed Controllers
 	final SpeedController frontLeftMotor;
@@ -319,9 +320,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void autonomousInit(){
 		ahrs.zeroYaw();
 
+		//  Gets the string from the FMS that shows which side of the switch and scale
+		//  This is mainly a failsafe if the string doesn't get to the robot
+		//  This is the failsafe so the fatal error doesn't kill the robot
+		try {
+			gameData = DriverStation.getInstance().getGameSpecificMessage();
+		}
+		catch (RuntimeException ex ) {
+			DriverStation.reportError("Error retrieveing switch and scale data from FMS:  " + ex.getMessage(), true);
+			autoSelected = Default;
+		}
+		
 		//	Gets FMS data, chooses Auto case based on it
-		String gameData;
-		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		if(gameData.charAt(0) == 'L') {
 			//	Sets robot to use code to go left
 			autoSelected = L;
