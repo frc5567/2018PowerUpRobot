@@ -1,3 +1,52 @@
+~ROBORIO WIRING DOCUMENTATION~
+By Matt Ruff
+~Updated 2/16/2018 (This might be changed as last changes are made
+
+PWM Wiring
+- 0 = Front Left Drive Motor
+- 1 = Back Left Drive Motor
+- 2 = Front Right Drive Motor
+- 3 = Back Right Drive Motor
+- 4 = Left Carte Grabber Arm
+- 5 = Right Carte Grabber Arm
+- 6 = Winch Motor 1
+- 7 = Winch Motor 2
+- 8 = UNUSED
+- 9 = Crate Grabber Tilt Motor
+
+DIO Wiring
+- 0 = UNUSED
+- 1 = Tilt Encoder B
+- 2 = Tilt Encoder A
+- 3 = UNUSED
+- 4 = Right Encoder B
+- 5 = Right Encoder A
+- 6 = Right Encoder Index (NOT USED IN PROGRAMMING)
+- 7 = Left Encoder B
+- 8 = Left Encoder A
+- 9 = Left Encoder Index (NOT USED IN PROGRAMMING)
+
+I2C Wiring
+- Start at RoboRIO
+- RoboRIO to Pneumatic Control Module
+- Pneumatic Control Module to PDP
+
+USB Wiring
+- 2x USB Camera
+
+Ethernet
+- Wireless Point to RoboRIO via PoE Injector
+
+Pneumatuic Wiring on Pneumatic Control Module
+- 0 = Left Extend
+- 1 = Left Retract
+- 2 = Right Extend
+- 3 = Right Retract
+- 4 = UNUSED
+- 5 = UNUSED
+- 6 = Climber Extend
+- 7 = Climber Retract
+
 -ARDUINO DOCUMENTATION-
 By Josh Overbeek
 
