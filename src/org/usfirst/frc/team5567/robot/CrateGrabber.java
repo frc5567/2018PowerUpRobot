@@ -119,7 +119,8 @@ public class CrateGrabber  implements MotorSafety {
 	
 	//	Method for raising arm
 	public void raiseArm(double speed){
-		if(armEncoder.getRaw() >= 20){
+		System.out.println(armEncoder.getRaw());
+		if(armEncoder.getRaw() <= -130){
 			raiseArmMotor.set(0);
 		}
 		else{
@@ -130,11 +131,12 @@ public class CrateGrabber  implements MotorSafety {
 	
 	//	Method for lowering arm
 	public void lowerArm(double speed){
-		if(armEncoder.getRaw() <= 0){
+		System.out.println(armEncoder.getRaw());
+		if(armEncoder.getRaw() >= 0){
 			raiseArmMotor.set(0);
 		}
 		else{
-		raiseArmMotor.set(-speed);
+		raiseArmMotor.set(speed);
 		}
 		//dSolArm.set(Value.kReverse);
 	}

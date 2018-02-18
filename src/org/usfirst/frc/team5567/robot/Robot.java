@@ -12,6 +12,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -148,7 +149,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//	TODO Variables for climber and crate grabber
 	//	Declaring variables for the Crate Grabber Arm
 	CrateGrabber grabberArm;
+	
+	// Are grabber arms open or closed? What is true?
 	boolean armFlag;
+	
 	boolean raisedArm;
 	double cubeIntakeSpeed;
 	double cubeLaunchSpeed;
@@ -189,7 +193,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		backLeftMotor = new VictorSP(1);
 		//backLeftMotor.setInverted(true);
 		frontRightMotor = new VictorSP(2);
-		frontRightMotor.setInverted(true);
+		frontRightMotor.setInverted(false);
 		backRightMotor = new VictorSP(3);
 		//backRightMotor.setInverted(false);
 
@@ -268,7 +272,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Instantiates our Grabber and Climber
 		grabberArm = new CrateGrabber(4, 5, 0, 1, 9);
-		climber = new RobotClimber(6, 7, 6, 7);
+		//grabberArm = new CrateGrabber(4, 5, 6,7, 9);
+		climber = new RobotClimber(6, 7, 6, 7);//(6, 7, 0, 1);//
 
 
 	}
@@ -347,6 +352,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addObject("Deposit Auton", kDepositAuton);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
+		climber.offSolenoid();
+		grabberArm.openGrabber(true);
 	}
 
 	public void autonomousInit(){
@@ -664,80 +671,98 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Sets flags for controls, armFlag false means open, raisedArm false means down
 		armFlag = false;
 		raisedArm = false;
+		
+		//	Resets the encoders
+		rightEncoder.reset();
+		leftEncoder.reset();
+		
+		rDistance = 0;
+		lDistance = 0;
 	}
 
 	/**
 	 *  The code that runs periodically while the robot is in teleop mode
 	 */
 	public void teleopPeriodic() {
-
+///*
 		//	Drives robot based on video game style controls, rTrigger is forward, lTrigger is reverse, left stick is turning
-		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight)-pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), false);
-		Timer.delay(0.05);
+		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight)-pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
+//		Timer.delay(0.05);
+		
+		//	Sets rdistance to the right encoder value
+		rDistance = rightEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
+		
+		//	Prints the encoder data.
+		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
 		//			TODO More commented out crate arm closed and open
 		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
-		if(armFlag == false){
+//		if(armFlag == false){
 			if(copilotController.getAButton()){
 				grabberArm.closeGrabber(true);
 				armFlag = true;
 			}
-		}
+//		}
 
 		//  If armFlag is true and the A button on the copilot controller is pressed, open the crate arm
-		else if(armFlag){
-			if(copilotController.getAButton()){
+//		else if(armFlag){
+			if(copilotController.getBButton()){
 				grabberArm.openGrabber(true);
 				armFlag = false;
 			}
-		}
+//		}
 
 		//	Prints whether the arms should be open or closed where open is false and closed is true
-		System.out.println(armFlag);
+//		System.out.println(armFlag);
 
 		//	Raises the arm if the arm is down and b is pressed
-		if(raisedArm == false){
-			if(copilotController.getBButton()){
-				grabberArm.raiseArm(0.3);
-				raisedArm = false;
-			}
-		}
-
-		//	Lowers arm if arm is up and b is pressed
-		else if(raisedArm){
-			if(copilotController.getBButton()){
-				grabberArm.lowerArm(0.3);
+		//if(raisedArm == false){
+			if(copilotController.getBumper(Hand.kRight)){ //originally B Button
+				grabberArm.raiseArm(-0.5);
 				raisedArm = true;
 			}
-		}
+		//}
+
+		//	Lowers arm if arm is up and b is pressed
+		//else if(raisedArm){
+			if(copilotController.getBumper(Hand.kLeft)){ //originally B Button
+				grabberArm.lowerArm(0.3);
+				raisedArm = false;
+			}
+		//}
 
 		//	TODO Cube grabber in Teleop 
-		//	If there is not a cube in the grabber and Y button is pressed turn motors on to intake cube
-		if(copilotController.getYButton()){
-			if(grabberArm.detectCube() == false){
+		//	If there is not a cube in the grabber and X button is pressed turn motors on to intake cube
+		if(copilotController.getXButton()){
+//			if(grabberArm.detectCube() == false){
 				grabberArm.cubeIntake(cubeIntakeSpeed);
-			}
+//			}
 			//	If cube is detected stop intake motors
-			else if(grabberArm.detectCube()){
-				grabberArm.stopIntake();
-			}
+//			else if(grabberArm.detectCube()){
+//				grabberArm.stopIntake();
+//			}
 		}
-		//	Launches cube when X button is pressed
-		else if (copilotController.getXButton()){
+		//	Launches cube when Y button is pressed
+		else if (copilotController.getYButton()){
 			grabberArm.launchCube(cubeLaunchSpeed);
 		}
 
 		//	Controls for the climber based on copilot pressing the left trigger and right bumper
-		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), copilotController.getBumper(Hand.kRight));
-		//	TODO Commented climber out in Teleop
+		// Do we really want this proportionate to trigger? 
+		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
+		//	TODO Commented climber out in Teleop 
 		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
 		//  The comparison is inverted due to the Y-stick naturally being inverted
-		if(copilotController.getY(Hand.kLeft) > -0.9){
+		if(copilotController.getY(Hand.kLeft) < -0.8){
 			climber.extendSolenoid();
+			System.out.println("here");
 		}
-		else if(copilotController.getY(Hand.kLeft) < 0.9){
+		else if(copilotController.getY(Hand.kLeft) > 0.8){
 			climber.retractSolenoid();
-		}
+		}//*/
+		
+//		Timer.delay(.002);
 	}
 
 	@Override
@@ -749,54 +774,66 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 
 	public void testInit(){
-		ahrs.zeroYaw();
-		/*
+		grabberArm.closeGrabber(true);
+		
+		/*ahrs.zeroYaw();
 		if (!turnController.isEnabled()) {
 			turnController.setSetpoint(kTargetAngleDegrees);
 			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
 			turnController.enable();
 		}
-		 */
+		 
 		gripX = new double[xGrip.getDoubleArray(defaultVal).length];
 		for(int i = 0; i < xGrip.getDoubleArray(defaultVal).length; i++){
 			gripX[i] = -1;
 		}
-		turnController.reset();
+		turnController.reset();*/
 		//System.out.println(SmartDashboard.getNumber("Speed", -10));
 	}
 
 
 	public void testPeriodic(){
-		if (!turnController.isEnabled()) {
-			turnController.setSetpoint(kTargetAngleDegrees);
-			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
-			turnController.enable();
+		if(copilotController.getAButton()){
+			grabberArm.closeGrabber(true);
 		}
-
-		//  Runs our GRIP pipeline given the webcam input
-		//  Mat given by vision thread
-		CubeHunter.process(mat);
-
-		//  Used to edit PID constants in the LiveWindow Dashboard
-		//		Sendable sendable = null;
-		//		LiveWindow.add(sendable);
-		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
-		//		LiveWindow.add(turnController.getSubsystem());
-		//		LiveWindow.addChild(turnController, turnController.getD());
-
-
-		System.out.println(turnController.onTarget());
-		rotateToAngleRate = turnController.get();
-		System.out.println((double)rotateToAngleRate);
-		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
-		Timer.delay(.005);
-
-		gripX = xGrip.getDoubleArray(gripX);
-
-		//	TODO Needs to be fixed, will not print values
-		for (double e:gripX){
-			System.out.print(e + "\t");
+		else{
+			grabberArm.openGrabber(true);
 		}
-		System.out.println();
+		if(copilotController.getBButton()){
+			grabberArm.dSolLeft.set(Value.kOff);
+		}
+		System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
 	}
+//		if (!turnController.isEnabled()) {
+//			turnController.setSetpoint(kTargetAngleDegrees);
+//			rotateToAngleRate = 0; // This value will be updated in the pidWrite() method.
+//			turnController.enable();
+//		}
+//
+//		//  Runs our GRIP pipeline given the webcam input
+//		//  Mat given by vision thread
+//		CubeHunter.process(mat);
+//
+//		//  Used to edit PID constants in the LiveWindow Dashboard
+//		//		Sendable sendable = null;
+//		//		LiveWindow.add(sendable);
+//		//		LiveWindow.addActuator(turnController, m_P, turnController.getP());
+//		//		LiveWindow.add(turnController.getSubsystem());
+//		//		LiveWindow.addChild(turnController, turnController.getD());
+//
+//
+//		System.out.println(turnController.onTarget());
+//		rotateToAngleRate = turnController.get();
+//		System.out.println((double)rotateToAngleRate);
+//		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+//		Timer.delay(.005);
+//
+//		gripX = xGrip.getDoubleArray(gripX);
+//
+//		//	TODO Needs to be fixed, will not print values
+//		for (double e:gripX){
+//			System.out.print(e + "\t");
+//		}
+//		System.out.println();
+//	}
 }

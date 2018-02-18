@@ -3,16 +3,16 @@ By Matt Ruff
 ~Updated 2/16/2018 (This might be changed as last changes are made
 
 PWM Wiring
-- 0 = Front Left Drive Motor
-- 1 = Back Left Drive Motor
-- 2 = Front Right Drive Motor
-- 3 = Back Right Drive Motor
-- 4 = Left Carte Grabber Arm
-- 5 = Right Carte Grabber Arm
-- 6 = Winch Motor 1
-- 7 = Winch Motor 2
+- 0 = Front Left Drive Motor 4
+- 1 = Back Left Drive Motor 3
+- 2 = Front Right Drive Motor 1
+- 3 = Back Right Drive Motor 2
+- 4 = Left Carte Grabber Arm 7
+- 5 = Right Carte Grabber Arm 8
+- 6 = Winch Motor 1 5
+- 7 = Winch Motor 2 6
 - 8 = UNUSED
-- 9 = Crate Grabber Tilt Motor
+- 9 = Crate Grabber Tilt Motor 9
 
 DIO Wiring
 - 0 = UNUSED

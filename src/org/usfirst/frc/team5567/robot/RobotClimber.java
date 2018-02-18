@@ -4,10 +4,11 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SpeedController;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
-import edu.wpi.first.wpilibj.Talon;
+//import edu.wpi.first.wpilibj.SpeedControllerGroup;
+//import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.can.CANStatus;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.VictorSP;
 
 
 public class RobotClimber {
@@ -35,10 +36,15 @@ public class RobotClimber {
 	public RobotClimber(int winchMotor1Port, int winchMotor2Port, int forwardPort, int backwardPort){
 		
 		//	Instantiating motors based off of ports from the constructor
-		winchMotor1 = new Talon(winchMotor1Port);
-		winchMotor2 = new Talon(winchMotor2Port);
+		winchMotor1 = new VictorSP(winchMotor1Port);
+		winchMotor2 = new VictorSP(winchMotor2Port);
 		
 		climberDSol = new DoubleSolenoid(forwardPort, backwardPort);
+		
+		// DifferentialDrive requires that you invert a speed controller before passing in, if appropriate.
+		// TODO: Need to test which side needs to be inverted
+		winchMotor1.setInverted(false);
+		winchMotor2.setInverted(false);
 		
 		//	Instantiating a drive train to be used as a winch
 		winchDrive = new DifferentialDrive(winchMotor1, winchMotor2);
@@ -59,6 +65,10 @@ public class RobotClimber {
 		climberDSol.set(Value.kReverse);
 	}
 	
+	public void offSolenoid(){
+		climberDSol.set(Value.kOff);
+	}
+	
 	
 	/**
 	 * Allows us to control the winch speed, at full speed or half speed.
@@ -68,14 +78,15 @@ public class RobotClimber {
 	 */
 	public void winchControl(double driveSpeed, boolean halfSpeed){
 		
-		if(halfSpeed = false){
+		if(0.1 <= Math.abs(driveSpeed)){
 			
-			winchDrive.arcadeDrive(driveSpeed, 0, false);
+			winchDrive.arcadeDrive(1, 0, false);
+			System.out.println("driveSpeed:" + driveSpeed);
 		}
 		
-		else if(halfSpeed = true){
-			
-			winchDrive.arcadeDrive(driveSpeed/2, 0, false);
+		
+		else {			
+			winchDrive.arcadeDrive(0, 0, false);
 		}
 		
 	}
