@@ -1,5 +1,8 @@
 package org.usfirst.frc.team5567.robot;
 
+import org.usfirst.frc.team5567.robot.CrateGrabber.AngleState;
+import org.usfirst.frc.team5567.robot.CrateGrabber.ArmState;
+import org.usfirst.frc.team5567.robot.CrateGrabber.MotorState;
 import org.opencv.core.Mat;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -51,7 +54,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//  Declaring Speed Controller Groups
 	final SpeedControllerGroup leftMotors;
 	final SpeedControllerGroup rightMotors;
-
 
 	//  Declaring Encoders for drivetrain motor control
 	final Encoder rightEncoder = new Encoder(5, 4, false, EncodingType.k1X);
@@ -353,7 +355,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		SmartDashboard.putData("Auto choices", m_chooser);
 		climber.offSolenoid();
-		grabberArm.openGrabber(true);
+		grabberArm.setGrabberArm(ArmState.kOpen);
 	}
 
 	public void autonomousInit(){
@@ -700,7 +702,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
 //		if(armFlag == false){
 			if(copilotController.getAButton()){
-				grabberArm.closeGrabber(true);
+				grabberArm.setGrabberArm(ArmState.kClosed);
 				armFlag = true;
 			}
 //		}
@@ -708,7 +710,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//  If armFlag is true and the A button on the copilot controller is pressed, open the crate arm
 //		else if(armFlag){
 			if(copilotController.getBButton()){
-				grabberArm.openGrabber(true);
+				grabberArm.setGrabberArm(ArmState.kOpen);
 				armFlag = false;
 			}
 //		}
@@ -719,7 +721,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Raises the arm if the arm is down and b is pressed
 		//if(raisedArm == false){
 			if(copilotController.getBumper(Hand.kRight)){ //originally B Button
-				grabberArm.raiseArm(-0.5);
+				grabberArm.setAngleArm(AngleState.kRaised, -0.5);
 				raisedArm = true;
 			}
 		//}
@@ -727,7 +729,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Lowers arm if arm is up and b is pressed
 		//else if(raisedArm){
 			if(copilotController.getBumper(Hand.kLeft)){ //originally B Button
-				grabberArm.lowerArm(0.3);
+				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
 				raisedArm = false;
 			}
 		//}
@@ -736,7 +738,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	If there is not a cube in the grabber and X button is pressed turn motors on to intake cube
 		if(copilotController.getXButton()){
 //			if(grabberArm.detectCube() == false){
-				grabberArm.cubeIntake(cubeIntakeSpeed);
+				grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
 //			}
 			//	If cube is detected stop intake motors
 //			else if(grabberArm.detectCube()){
@@ -745,7 +747,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 		//	Launches cube when Y button is pressed
 		else if (copilotController.getYButton()){
-			grabberArm.launchCube(cubeLaunchSpeed);
+			grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
 		}
 
 		//	Controls for the climber based on copilot pressing the left trigger and right bumper
@@ -774,7 +776,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 
 	public void testInit(){
-		grabberArm.closeGrabber(true);
+		grabberArm.setGrabberArm(ArmState.kClosed);
 		
 		/*ahrs.zeroYaw();
 		if (!turnController.isEnabled()) {
@@ -794,10 +796,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void testPeriodic(){
 		if(copilotController.getAButton()){
-			grabberArm.closeGrabber(true);
+			grabberArm.setGrabberArm(ArmState.kClosed);;
 		}
 		else{
-			grabberArm.openGrabber(true);
+			grabberArm.setGrabberArm(ArmState.kOpen);;
 		}
 		if(copilotController.getBButton()){
 			grabberArm.dSolLeft.set(Value.kOff);
