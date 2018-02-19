@@ -22,6 +22,8 @@ public class CrateGrabberMotor extends Grabber {
 	@Override
 	public void setAngleArm(AngleState angleValue, double speed){
 		switch(angleValue) {
+		case kInitial:
+			raiseArmMotor.set(speed);
 		case kRaised:
 			raiseArmMotor.set(speed);
 			break;
