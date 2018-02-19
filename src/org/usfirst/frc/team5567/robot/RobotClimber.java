@@ -2,16 +2,25 @@ package org.usfirst.frc.team5567.robot;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SpeedController;
-//import edu.wpi.first.wpilibj.SpeedControllerGroup;
-//import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.can.CANStatus;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.VictorSP;
 
 
 public class RobotClimber {
+	
+	//	Declares Enum for state of the pneumatics for the climber
+	public enum ClimbState {
+		kOff(0),
+		kExtend(1),
+		kRetract(2);
+		
+		private int climbValue;
+		
+		ClimbState(int climbValue) {
+			this.climbValue = climbValue;
+		}
+	}
 	
 	//	Declaring winch motors
 	SpeedController winchMotor1;
@@ -52,23 +61,21 @@ public class RobotClimber {
 	}
 	
 	/**
-	 * Extends the Solenoid.
+	 * @param climbValue The Enum for setting the state for the pneumatics on the climber arm
 	 */
-	public void extendSolenoid(){
-		climberDSol.set(Value.kForward);
-	}
-	
-	/**
-	 * Retracts the Solenoid.
-	 */
-	public void retractSolenoid(){
-		climberDSol.set(Value.kReverse);
-	}
-	
-	public void offSolenoid(){
-		climberDSol.set(Value.kOff);
-	}
-	
+	public void setClimbSolenoid(ClimbState climbValue) {
+		switch(climbValue) {
+			case kOff:
+				climberDSol.set(Value.kOff);
+				break;
+			case kExtend:
+				climberDSol.set(Value.kForward);
+				break;
+			case kRetract:
+				climberDSol.set(Value.kReverse);
+				break;
+		}
+	}	
 	
 	/**
 	 * Allows us to control the winch speed, at full speed or half speed.
@@ -78,15 +85,15 @@ public class RobotClimber {
 	 */
 	public void winchControl(double driveSpeed, boolean halfSpeed){
 		
-		if(0.1 <= Math.abs(driveSpeed)){
+		if(halfSpeed = false){
 			
-			winchDrive.arcadeDrive(1, 0, false);
-			System.out.println("driveSpeed:" + driveSpeed);
+			winchDrive.arcadeDrive(driveSpeed, 0, false);
 		}
 		
 		
-		else {			
-			winchDrive.arcadeDrive(0, 0, false);
+		else if (halfSpeed) {			
+			
+			winchDrive.arcadeDrive(driveSpeed/2, 0, false);
 		}
 		
 	}

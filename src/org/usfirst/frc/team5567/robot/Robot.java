@@ -3,7 +3,7 @@ package org.usfirst.frc.team5567.robot;
 import org.usfirst.frc.team5567.robot.Grabber.AngleState;
 import org.usfirst.frc.team5567.robot.Grabber.ArmState;
 import org.usfirst.frc.team5567.robot.Grabber.MotorState;
-import org.opencv.core.Mat;
+import org.usfirst.frc.team5567.robot.RobotClimber.ClimbState;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -232,7 +232,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addObject("Deposit Auton", kDepositAuton);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
-		climber.offSolenoid();
+		climber.setClimbSolenoid(ClimbState.kOff);
 		grabberArm.setGrabberArm(ArmState.kOpen);
 	}
 
@@ -559,11 +559,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
 		//  The comparison is inverted due to the Y-stick naturally being inverted
 		if(copilotController.getY(Hand.kLeft) < -0.8){
-			climber.extendSolenoid();
+			climber.setClimbSolenoid(ClimbState.kExtend);
 			System.out.println("here");
 		}
 		else if(copilotController.getY(Hand.kLeft) > 0.8){
-			climber.retractSolenoid();
+			climber.setClimbSolenoid(ClimbState.kRetract);
 		}
 	}
 
