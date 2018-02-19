@@ -82,17 +82,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//	Declares Threshold for counting zeroes while turning in auto
 	double rotateThreshold = 0.1;
 
-	/* The following PID Controller coefficients will need to be tuned */
-	/* to match the dynamics of your drive system.  Note that the      */
-	/* SmartDashboard in Test mode has support for helping you tune    */
-	/* controllers by displaying a form where you can enter new P, I,  */
-	/* and D constants and test the mechanism.                         */
-
-	//	These are the default values -UNUSED-
-	//	static final double kP = 2; //0.015;
-	//	static final double kI = 5; //0.00
-	//	static final double kD = 0.035;
-
 	//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
 	double kDRotate = 0.001;//.035 //0.125
 	final double kFRotate = 0.00;
@@ -113,42 +102,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	static final double kToleranceDegrees = 1;    
 	static final double kTargetAngleDegrees = 90;
 
-	//  Declaring timer used in auto
-	//	Timer autoTimer;
-
-	/*	//  Declaring Ultrasonics used in auto
-	Ultrasonic lUltra;
-	Ultrasonic rUltra;
-	 */
-
-	//  Declaring Pixy camera used for vision
-	PixyCrate myPixy;
-
-	//	Declaring GRIP method
-	GripPipeline CubeHunter;
-
 	//	Declaring the USB Camera
 	UsbCamera camera;
 	UsbCamera cameraTwo;
-
-	//	Declaring the vision thread
-	Thread m_visionThread;
-
-	//	Declaring the mats for vision
-	Mat mat;
-	Mat matTwo;
-
-	//	Declaring the Network Table for GRIP outputs
-	NetworkTable gripOutputs;
-	NetworkTableInstance gripInstance;
-	NetworkTableEntry xGrip;
-	NetworkTableEntry yGrip;
-	NetworkTableEntry areaGrip;
-
-
-	//	Declares array for storing Grip values
-	double[] gripX;
-	double[] defaultVal;
 
 	//	TODO Variables for climber and crate grabber
 	//	Declaring variables for the Crate Grabber Arm
@@ -183,23 +139,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 */
 	public Robot() {
 		//  Instantiating Speed Controllers and assigned ports
-		/*frontLeftMotor = new VictorSP(0);
-		frontLeftMotor.setInverted(false);
-		backLeftMotor = new VictorSP(1);
-		backLeftMotor.setInverted(true);
-		frontRightMotor = new VictorSP(2);
-		frontRightMotor.setInverted(false);
-		backRightMotor = new VictorSP(3);
-		backRightMotor.setInverted(false);
-		 */
 		frontLeftMotor = new VictorSP(0);
-		//frontLeftMotor.setInverted(false);
 		backLeftMotor = new VictorSP(1);
-		//backLeftMotor.setInverted(true);
 		frontRightMotor = new VictorSP(2);
 		frontRightMotor.setInverted(false);
 		backRightMotor = new VictorSP(3);
-		//backRightMotor.setInverted(false);
 
 		//  Instantiating Speed Controller Groups
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
@@ -233,16 +177,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Sets up the rotation PID
 		turnController = new PIDController(kPRotate, kIRotate, kDRotate, kFRotate, ahrs, this, 0.02);
 		turnController.setInputRange(-180.0f,  180.0f);
-		//turnController.setOutputRange(-1.0, 1.0);
 		turnController.setOutputRange(-.3, .3);
 		turnController.setAbsoluteTolerance(kToleranceDegrees);
-		//	turnController.setPercentTolerance(5);
 		turnController.setContinuous(true);
 		turnController.disable();
 
 		//	Sets up the straight PID
 		straightController = new PIDController(kPStraight, kIStraight, kDStraight, kFStraight, ahrs, this, 0.02);
-		//		straightController = new PIDController(kPRotate, kIRotate, kDRotate, kFRotate, ahrs, this, 0.02);
 		straightController.setInputRange(-180.0f,  180.0f);
 		straightController.setOutputRange(-.3, .3);
 		straightController.setAbsoluteTolerance(kToleranceDegrees);
@@ -253,17 +194,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		/* Add the PID Controller to the Test-mode dashboard, allowing manual  */
 		/* tuning of the Turn Controller's P, I and D coefficients.            */
 		/* Typically, only the P value needs to be modified.                   */
-		//	LiveWindow.addActuator("DriveSystem", "RotateController", turnController);        
 		SmartDashboard.putNumber("KP", turnController.getP());
 		SmartDashboard.putNumber("KI", turnController.getI());
 		SmartDashboard.putNumber("KD", turnController.getD());
 		SmartDashboard.putNumber("Speed", testSpd);
 
-		/*//  Instantiating ultrasonics
-		lUltra = new Ultrasonic(1,0);
-		rUltra = new Ultrasonic(3,2);
-		lUltra.setAutomaticMode(true);
-		 */
 		cubeLaunchSpeed = 0.4;
 		cubeIntakeSpeed = 0.3;
 
@@ -272,7 +207,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		firstFlag = true;
 		rDistance = 0;
 		lDistance = 0;
-		//	TODO	Init with port numbers
 
 		//	Instantiates our Grabber and Climber
 		if(ARM_TYPE){
@@ -281,7 +215,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		else if(!ARM_TYPE){
 			grabberArm = new CrateGrabberSol(4, 5, 0, 1, 2, 3);	
 		}
-		//grabberArm = new CrateGrabber(4, 5, 6,7, 9);
+
 		climber = new RobotClimber(6, 7, 6, 7);//(6, 7, 0, 1);//
 
 
@@ -290,66 +224,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	@Override
 	public void robotInit(){
 
-		//lUltra.setEnabled(true);
-		//rUltra.setEnabled(true);
-
-		//  Instantiating pixy camera
-		myPixy = new PixyCrate();
-
 		//	Sets up the camera stream
 		camera = CameraServer.getInstance().startAutomaticCapture(0);
 		cameraTwo = CameraServer.getInstance().startAutomaticCapture(1);
-		//		Mat image1 = new Mat();
-		//		Mat image2 = new Mat();
 		camera.setResolution(160, 120);
 		camera.setFPS(1);
 		cameraTwo.setResolution(320, 240);
 		cameraTwo.setFPS(30);
-
-		//	Creates a Mat for storing images vision code
-		mat = new Mat();
-		matTwo = new Mat();
-
-		//	Creates a GRIP pipeline for processing the images received from the USB Camera
-		CubeHunter = new GripPipeline();
-
-		//  Must be commented out if there is no camera, don't use this for comp, only if we use GRIP
-		//	Creates a thread for running the Camera
-		/*m_visionThread = new Thread(() -> {
-			//  Get the UsbCamera from CameraServer
-			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
-			cameraTwo = CameraServer.getInstance().startAutomaticCapture(1);
-
-			//  Set the resolution
-			camera.setResolution(640, 480);
-			cameraTwo.setResolution(640, 480);
-			//  Get a CvSink. This will capture Mats from the camera
-			CvSink cvSink = CameraServer.getInstance().getVideo();
-
-			// Setup a CvSource. This will send images back to the Dashboard
-			CvSource outputStream = CameraServer.getInstance().putVideo("Rectangle", 640, 480);
-
-			//  This cannot be 'true'. The program will never exit if it is. This
-			//  lets the robot stop this thread when restarting robot code or
-			//  deploying.
-			while (!Thread.interrupted()) {
-				//  Tell the CvSink to grab a frame from the camera and put it
-				//  in the source mat.  If there is an error notify the output.
-				if (cvSink.grabFrame(mat) == 0) {
-					//  Send the output the error.
-					outputStream.notifyError(cvSink.getError());
-					//  skip the rest of the current iteration
-					continue;
-				}
-			}
-
-			// Give the output stream a new image to display
-			outputStream.putFrame(mat);
-
-		});
-		m_visionThread.setDaemon(true);
-		m_visionThread.start();
-		 */
 
 		//  Sets up distance for pulse so getDistance is set in inches
 		leftEncoder.setDistancePerPulse(0.0092);
@@ -408,8 +289,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			System.out.println("Default Auto Selected");
 		}
 		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);
 
 	}
@@ -451,7 +330,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				StraightDriveAngle(192, 0.3, 0);
 			break;
 			case(1):
-				//grabberArm.launchCube(0.75);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
 				break;
 			default:
 				break;
@@ -708,7 +587,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//			TODO More commented out crate arm closed and open
 		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
 		//		if(armFlag == false){
-		if(copilotController.getAButton()){
+		if(copilotController.getAButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kClosed);
 			armFlag = true;
 		}
@@ -716,7 +595,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//  If armFlag is true and the A button on the copilot controller is pressed, open the crate arm
 		//		else if(armFlag){
-		if(copilotController.getBButton()){
+		if(copilotController.getBButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kOpen);
 			armFlag = false;
 		}
@@ -727,7 +606,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Raises the arm if the arm is down and b is pressed
 		//if(raisedArm == false){
-		if(copilotController.getBumper(Hand.kRight)){ //originally B Button
+		if(copilotController.getBumperReleased(Hand.kRight)){ //originally B Button
 			grabberArm.setAngleArm(AngleState.kRaised, -0.5);
 			raisedArm = true;
 		}
@@ -735,7 +614,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Lowers arm if arm is up and b is pressed
 		//else if(raisedArm){
-		if(copilotController.getBumper(Hand.kLeft)){ //originally B Button
+		if(copilotController.getBumperReleased(Hand.kLeft)){ //originally B Button
 			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
 			raisedArm = false;
 		}

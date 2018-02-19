@@ -37,6 +37,20 @@ public abstract class Grabber implements MotorSafety {
 		private int angleValue;
 		
 		AngleState(int angleValue) {
+			this.setAngleValue(angleValue);
+		}
+
+		/**
+		 * @return the angleValue
+		 */
+		public int getAngleValue() {
+			return angleValue;
+		}
+
+		/**
+		 * @param angleValue the angleValue to set
+		 */
+		public void setAngleValue(int angleValue) {
 			this.angleValue = angleValue;
 		}
 	}
