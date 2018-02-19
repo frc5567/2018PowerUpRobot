@@ -331,61 +331,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			// Put default auto code here
 			break;
 		}
-
-		/*
-		//  A case based test auton for driving in a square
-		switch(autoCase){
-		//  Turns 90 degrees counterclockwise
-		case(0):
-			StraightDriveAngle(36, 0.3, 0);
-		//			RotateDrive(90);
-		break;
-		//  Moves forward 10 inches at a velocity of 0.2
-		case(1):
-			RotateDrive(90);
-		break;
-		//  Moves forward 10 inches at a velocity of 0.2
-		case(2):
-			StraightDriveAngle(36, 0.3, 90);
-		break;
-		//  Turns 90 degrees counterclockwise
-		case(3):
-			RotateDrive(180);
-		break;
-		//  Moves forward 10 inches at a velocity of 0.2
-		case(4):
-			StraightDriveAngle(36, 0.3, 180);
-		break;
-		//  Turns 0 degrees
-		case(5):
-			RotateDrive(-90);
-		break;
-		//  Moves forward 10 inches at a velocity of 0.2
-		case(6):
-			StraightDriveAngle(36, 0.3, -90);
-		break;
-		//  Turns 90 degrees clockwise
-		case(7):
-			RotateDrive(0);
-		break;
-		default:
-		}
-		 */
-
-		//  Commented out for testing purposes
-		//			Auton for testing vision
-		//			A method that turns the robot to face the target
-		//			myPixy.centerOnObject(driveTrain);
-		//			Timer.delay(.07);
-
-		//		Instantiating GRIP Network Tables
-		/*		gripOutputs = gripInstance.getTable("GRIP/myBlobsReport");
-		xGrip = new NetworkTableEntry(gripInstance, 0);
-		yGrip = new NetworkTableEntry(gripInstance, 1);
-		areaGrip = new NetworkTableEntry(gripInstance, 2);
-		defaultVal = new double[1];
-		defaultVal[1] = -1;*/
-
+		
 		Timer.delay(0.05);		// wait for a motor update time
 	}
 
