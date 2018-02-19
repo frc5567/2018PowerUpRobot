@@ -189,8 +189,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		SmartDashboard.putNumber("KD", turnController.getD());
 		SmartDashboard.putNumber("Speed", testSpd);
 
-		cubeLaunchSpeed = 0.4;
-		cubeIntakeSpeed = 0.3;
+		cubeLaunchSpeed = 0.8;
+		cubeIntakeSpeed = 0.7;
 
 		//	Instantiates variables for the auton methods
 		autoCase = 0;
@@ -206,7 +206,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			grabberArm = new CrateGrabberSol(4, 5, 0, 1, 2, 3);	
 		}
 
-		climber = new RobotClimber(6, 7, 6, 7);//(6, 7, 0, 1);//
+		climber = new RobotClimber(6, 7, 6, 7);
 
 
 	}
