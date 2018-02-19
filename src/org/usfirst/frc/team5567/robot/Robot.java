@@ -124,6 +124,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 
+	//	Instantiates a value that should equal 90 degrees on the encoder that we will use to break a while loop
+	final int kInitAngle = -130;
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -234,6 +236,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		SmartDashboard.putData("Auto choices", m_chooser);
 		climber.setClimbSolenoid(ClimbState.kOff);
 		grabberArm.setGrabberArm(ArmState.kOpen);
+
+		Timer.delay(1);
+		grabberArm.armEncoder.reset();
+		Timer.delay(2);
+		
+		while(grabberArm.armEncoder.getRaw() < kInitAngle){
+			grabberArm.setAngleArm(AngleState.kInitial, 0.4);	
+		}
+		grabberArm.setAngleArm(AngleState.kInitial, 0.0);
 	}
 
 	public void autonomousInit(){
@@ -321,7 +332,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			break;
 			case(1):
 				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
-				break;
+			break;
 			default:
 				break;
 			}
@@ -331,7 +342,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			// Put default auto code here
 			break;
 		}
-		
+
 		Timer.delay(0.05);		// wait for a motor update time
 	}
 
@@ -526,7 +537,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		if(copilotController.getBButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kOpen);
 		}
-		
+
 		//	Raises the arm if the right bumper is pressed
 		if(copilotController.getBumperReleased(Hand.kRight)){
 			grabberArm.setAngleArm(AngleState.kRaised, -0.5);
