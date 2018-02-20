@@ -15,8 +15,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 public abstract class Grabber implements MotorSafety {
 
 	//	Constants for arm position/rotation
-	final double kArmEncRaised = -95;
-	final double kArmEncInt = -160;
+	final double kArmEncRaised = -120;
+	final double kArmEncInt = -135;
+	final double kArmEncIntBack = -180;
 	final double kArmEncLower = 0;
 	
 	//	Declares Enum for state of pneumatic arm for opening and closing CrateGrabber Arm

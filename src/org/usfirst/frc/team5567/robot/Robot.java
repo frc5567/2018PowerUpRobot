@@ -52,7 +52,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	final SpeedControllerGroup rightMotors;
 
 	//  Declaring Encoders for drivetrain motor control
-	final Encoder rightEncoder = new Encoder(5, 4, false, EncodingType.k1X);
+	final Encoder rightEncoder = new Encoder(5, 4, true, EncodingType.k1X);
 	final Encoder leftEncoder = new Encoder(8, 7, false, EncodingType.k1X);
 
 	//  Declaring Xbox controllers for controlling robot
@@ -108,7 +108,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	double cubeLaunchSpeed;
 
 	//	Declares variables for auton driving - first flag is used to determine if it is the first time we have entered the method that case
-	int autoCase;
+	static int autoCase;
 	boolean firstFlag;
 	double rDistance;
 	double lDistance;
@@ -239,12 +239,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		Timer.delay(1);
 		grabberArm.armEncoder.reset();
+		System.out.println("Reset the encoder on the CrateGrabber");
 		Timer.delay(2);
-		
-		while(grabberArm.armEncoder.getRaw() < kInitAngle){
-			grabberArm.setAngleArm(AngleState.kInitial, 0.4);	
-		}
-		grabberArm.setAngleArm(AngleState.kInitial, 0.0);
 	}
 
 	public void autonomousInit(){
@@ -318,7 +314,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			switch(autoCase){
 			//  Drives straight
 			case(0):
-				StraightDriveAngle(192, 0.3, 0);
+				StraightDriveAngle(95, 0.3, 0);
+			grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 			break;
 			default:
 				break;
@@ -328,10 +325,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			switch(autoCase){
 			//  Drives straight
 			case(0):
-				StraightDriveAngle(192, 0.3, 0);
+				StraightDriveAngle(80, 0.3, 0);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 			break;
 			case(1):
-				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+				StraightDriveAngle(15, 0.3, 0);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+			break;
+			case(2):
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				Timer.delay(1.5);
+				autoCase++;
 			break;
 			default:
 				break;
@@ -378,7 +383,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Gets the total distance from the encoders
 		//	This encoder must be inverted so that we get proper values
 		rDistance = rightEncoder.getDistance();
-		lDistance = -leftEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
 
 		//	Prints distance from encoders
 		System.out.println(rDistance + "   " + lDistance);
@@ -411,7 +416,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Resets the encoders and the distance traveled the first time this enters
 		if(firstFlag){
-			//			leftEncoder.reset();
+			leftEncoder.reset();
 			rightEncoder.reset();
 
 			rDistance = 0;
@@ -434,10 +439,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Gets the total distance from the encoders
 		//	This encoder must be inverted so that we get proper values
 		rDistance = rightEncoder.getDistance();
-		//		lDistance = -leftEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
 
 		//	Prints distance from encoders
-		System.out.println(rDistance + "   " + rightEncoder.getRaw());
+		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
 		//	Gets rate of rotation from PID
 		rotateToAngleRate = straightController.get();
@@ -539,12 +544,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 
 		//	Raises the arm if the right bumper is pressed
-		if(copilotController.getBumperReleased(Hand.kRight)){
+		if(copilotController.getBumper(Hand.kRight)){
 			grabberArm.setAngleArm(AngleState.kRaised, -0.5);
 		}
 
 		//	Lowers arm if the left bumper is pressed
-		if(copilotController.getBumperReleased(Hand.kLeft)){
+		if(copilotController.getBumper(Hand.kLeft)){
 			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
 		}
 
