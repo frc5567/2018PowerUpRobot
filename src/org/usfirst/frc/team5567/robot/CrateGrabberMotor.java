@@ -23,12 +23,23 @@ public class CrateGrabberMotor extends Grabber {
 	public void setAngleArm(AngleState angleValue, double speed){
 		switch(angleValue) {
 		case kInitial:
+
 			raiseArmMotor.set(speed);
 		case kRaised:
-			raiseArmMotor.set(speed);
+			if(armEncoder.getRaw() <= kArmEncRaised) {
+				raiseArmMotor.set(0);
+			}
+			else {
+				raiseArmMotor.set(speed);
+			}
 			break;
 		case kLowered:
-			raiseArmMotor.set(-speed);
+			if(armEncoder.getRaw() >= kArmEncLower) {
+				raiseArmMotor.set(0);
+			}
+			else {
+				raiseArmMotor.set(-speed);
+			}
 			break;
 		}
 
