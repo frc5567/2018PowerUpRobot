@@ -202,14 +202,15 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Instantiates our Grabber and Climber
 		if(ARM_TYPE){
-			grabberArm = new CrateGrabberMotor(4, 5, 0, 1, 9);
+			//grabberArm = new CrateGrabberMotor(4, 5, 0, 1, 9);
+			grabberArm = new CrateGrabberMotor(4, 5, 6, 7, 9);
 		}
 		else if(!ARM_TYPE){
-			grabberArm = new CrateGrabberSol(4, 5, 0, 1, 2, 3);	
+			//grabberArm = new CrateGrabberSol(4, 5, 0, 1, 2, 3);	
 		}
 
-		climber = new RobotClimber(6, 7, 6, 7);
-
+		//climber = new RobotClimber(6, 7, 6, 7);
+		climber = new RobotClimber(6,7,0,1);
 
 	}
 
@@ -326,17 +327,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			//  Drives straight
 			case(0):
 				StraightDriveAngle(80, 0.3, 0);
-				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+			grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 			break;
 			case(1):
 				StraightDriveAngle(15, 0.3, 0);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+			grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 			break;
 			case(2):
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				Timer.delay(1.5);
-				autoCase++;
+			grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+			Timer.delay(1.5);
+			autoCase++;
 			break;
 			default:
 				break;
@@ -386,7 +387,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		lDistance = leftEncoder.getDistance();
 
 		//	Prints distance from encoders
-		System.out.println(rDistance + "   " + lDistance);
+		//		System.out.println(rDistance + "   " + lDistance);
 
 		//	Gets rate of rotation from PID
 		rotateToAngleRate = straightController.get();
@@ -529,8 +530,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rDistance = rightEncoder.getDistance();
 		lDistance = leftEncoder.getDistance();
 
+		System.out.println(rightEncoder.getRate());
 		//	Prints the encoder data.
-		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
+		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
 		//			TODO More commented out crate arm closed and open
 		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
@@ -570,19 +572,22 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 
 		//	Controls for the climber based on copilot pressing the left trigger and right bumper 
-		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
-
+		if(Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > .1){
+			//climber.winchControl(1, false);
+		}
+		
+//		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
+		//System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
 		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
 		//  The comparison is inverted due to the Y-stick naturally being inverted
 		if(copilotController.getY(Hand.kLeft) < -0.8){
 			climber.setClimbSolenoid(ClimbState.kExtend);
-			System.out.println("here");
+			//System.out.println("here");
 		}
 		else if(copilotController.getY(Hand.kLeft) > 0.8){
 			climber.setClimbSolenoid(ClimbState.kRetract);
 		}
 	}
-
 	@Override
 	/* This function is invoked periodically by the PID Controller, */
 	/* based upon navX MXP yaw angle input and PID Coefficients.    */

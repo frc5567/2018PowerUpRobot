@@ -53,7 +53,7 @@ public class RobotClimber {
 		// DifferentialDrive requires that you invert a speed controller before passing in, if appropriate.
 		// TODO: Need to test which side needs to be inverted
 		winchMotor1.setInverted(false);
-		winchMotor2.setInverted(false);
+		winchMotor2.setInverted(true);
 
 		//	Instantiating a drive train to be used as a winch
 		winchDrive = new DifferentialDrive(winchMotor1, winchMotor2);
@@ -85,16 +85,16 @@ public class RobotClimber {
 	 */
 	public void winchControl(double driveSpeed, boolean halfSpeed){
 
-		if(halfSpeed = false){
+		//if(halfSpeed = false){
 
-			winchDrive.arcadeDrive(driveSpeed, 0, false);
-		}
+		winchDrive.arcadeDrive(-1, 0, false);
+		//}
 
-
-		else if (halfSpeed) {			
-
-			winchDrive.arcadeDrive(driveSpeed/2, 0, false);
-		}
+//
+//		if (halfSpeed) {			
+//
+//			winchDrive.arcadeDrive(driveSpeed/2, 0, false);
+//		}
 
 	}
 }
