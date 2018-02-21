@@ -231,8 +231,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Adds options to the sendable chooser
 		m_chooser.addDefault("No Move Auton", kNoMoveAuton);
-		m_chooser.addObject("Straight Auton", kRightPosition);
-		m_chooser.addObject("Deposit Auton", kLeftPosition);
+		m_chooser.addObject("Right Position", kRightPosition);
+		m_chooser.addObject("Left Position", kLeftPosition);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
 		climber.setClimbSolenoid(ClimbState.kOff);
@@ -305,11 +305,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(-165);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+					RotateDrive(-100);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(140, 0.4, -165);
+					StraightDriveAngle(140, 0.4, -100);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
@@ -342,349 +342,357 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeIntakeSpeed);
+					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				Timer.delay(1.5);
+				autoCase++;
+				break;
 				default:
 					break;
 				}
-					break;
+				break;
 
-				case Default:
-					//	Default auto code here
-					System.out.println("Default case");
+			case Default:
+				//	Default auto code here
+				System.out.println("Default case");
+				break;
+			}
+			break;
+
+		case kLeftPosition:
+			switch(fmsAutoSelected) {
+			case L:
+				//	Left auto Code here
+				switch(autoCase){
+				//  Drives straight
+				case(0):
+					StraightDriveAngle(210, 0.6, 0);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(1):
+					RotateDrive(100);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(2):
+					StraightDriveAngle(140, 0.4, 100);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(3):
+					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				Timer.delay(1.5);
+				autoCase++;
+				break;
+				default:
 					break;
 				}
 				break;
-				
-			case kLeftPosition:
-				switch(fmsAutoSelected) {
-				case L:
-					//	Left auto Code here
-					switch(autoCase){
-					//  Drives straight
-					case(0):
-						StraightDriveAngle(210, 0.6, 0);
-					grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-					break;
-					case(1):
-						RotateDrive(165);
-					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-					break;
-					case(2):
-						StraightDriveAngle(140, 0.4, 165);
-					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-					break;
-					case(3):
-						grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-					grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-					Timer.delay(1.5);
-					autoCase++;
-					break;
-					default:
-						break;
-					}
-					break;
-				case R:
-					//	Right auto code here
-					System.out.println("Right case");
+			case R:
+				//	Right auto code here
+				System.out.println("Right case");
 
-					//				Left auto Code here
-					switch(autoCase){
-					//  Drives straight
-					case(0):
-						StraightDriveAngle(168, 0.6, 0);
-					grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-					break;
-					case(1):
-						RotateDrive(90);
-					grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-					break;
-					case(2):
-						StraightDriveAngle(10, 0.4, 90);
+				//				Left auto Code here
+				switch(autoCase){
+				//  Drives straight
+				case(0):
+					StraightDriveAngle(168, 0.6, 0);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(1):
+					RotateDrive(90);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(2):
+					StraightDriveAngle(10, 0.4, 90);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(3):
 					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				Timer.delay(1.5);
+				autoCase++;
+				break;
+				default:
 					break;
-					case(3):
-						grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeIntakeSpeed);
-					default:
-						break;
-					}
-						break;
+				}
+				break;
 
-					case Default:
-						//	Default auto code here
-						System.out.println("Default case");
-						break;
-					}
-					break;
-					
-			case kNoMoveAuton:
-			default:
-				// Put default auto code here
+			case Default:
+				//	Default auto code here
+				System.out.println("Default case");
 				break;
 			}
+			break;
 
-			Timer.delay(0.05);		// wait for a motor update time
+		case kNoMoveAuton:
+		default:
+			// Put default auto code here
+			break;
 		}
 
-		/**
-		 * Method for driving straight in auton
-		 * @param targetDistance The distance you want to travel (in inches)
-		 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-		 */
-		public void StraightDrive(double targetDistance, double speed){
+		Timer.delay(0.05);		// wait for a motor update time
+	}
 
-			//	Resets the encoders and the distance traveled the first time this enters
-			if(firstFlag){
-				leftEncoder.reset();
-				rightEncoder.reset();
+	/**
+	 * Method for driving straight in auton
+	 * @param targetDistance The distance you want to travel (in inches)
+	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
+	 */
+	public void StraightDrive(double targetDistance, double speed){
 
-				rDistance = 0;
-				lDistance = 0;
-
-				System.out.println("resetting");
-
-				// Sets the Setpoint so the robot travels straight
-				straightController.setSetpoint(0);
-
-				firstFlag = false;
-			}
-
-			//	Enables the turn controller if it is not already
-			if (!straightController.isEnabled()) {
-				rotateToAngleRate = 0;
-				straightController.enable();
-			}
-
-			//	Gets the total distance from the encoders
-			//	This encoder must be inverted so that we get proper values
-			rDistance = rightEncoder.getDistance();
-			lDistance = leftEncoder.getDistance();
-
-			//	Prints distance from encoders
-			//		System.out.println(rDistance + "   " + lDistance);
-
-			//	Gets rate of rotation from PID
-			rotateToAngleRate = straightController.get();
-
-			//	Stops robot if target distance was reached and moves to the next case
-			if(targetDistance <= lDistance || targetDistance <= rDistance){
-				driveTrain.arcadeDrive(0, 0, false);
-				autoCase++;
-				firstFlag = true;
-				rDistance = 0;
-				lDistance = 0;
-			}
-
-			//	Drives straight forward if target is not reached
-			else{
-				driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
-			}
-		}
-
-		/**
-		 * Method for driving straight in auton
-		 * @param targetDistance The distance you want to travel (in inches)
-		 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-		 * @param driveAngle Angle thaat is used as "zero" when going straight after turning
-		 */
-		public void StraightDriveAngle(double targetDistance, double speed, double driveAngle){
-
-			//	Resets the encoders and the distance traveled the first time this enters
-			if(firstFlag){
-				leftEncoder.reset();
-				rightEncoder.reset();
-
-				rDistance = 0;
-				lDistance = 0;
-
-				System.out.println("resetting");
-
-				// Sets the Setpoint so the robot travels straight
-				straightController.setSetpoint(driveAngle);
-
-				firstFlag = false;
-			}
-
-			//	Enables the turn controller if it is not already
-			if (!straightController.isEnabled()) {
-				rotateToAngleRate = 0;
-				straightController.enable();
-			}
-
-			//	Gets the total distance from the encoders
-			//	This encoder must be inverted so that we get proper values
-			rDistance = rightEncoder.getDistance();
-			lDistance = leftEncoder.getDistance();
-
-			//	Prints distance from encoders
-			System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
-
-			//	Gets rate of rotation from PID
-			rotateToAngleRate = straightController.get();
-
-			//	Stops robot if target distance was reached and moves to the next case
-			if(targetDistance <= lDistance || targetDistance <= rDistance){
-				driveTrain.arcadeDrive(0, 0, false);
-				autoCase++;
-				firstFlag = true;
-				rDistance = 0;
-				lDistance = 0;
-			}
-
-			//	Drives straight forward if target is not reached
-			else{
-				driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
-			}
-		}
-
-		/**
-		 * Method for rotating into the target angle in auton
-		 * @param targetAngle The angle we want to turn to (in degrees)
-		 */
-		public void RotateDrive(double targetAngle){
-			//  If this is the first time entering this method, sets target angle
-			if(firstFlag){
-				turnController.reset();
-				rotateCount = 0;
-				turnController.setSetpoint(targetAngle);
-				firstFlag = false;
-			}
-
-			//	 If the turn controller is not enabled, enable turn controller
-			if (!turnController.isEnabled()) {
-				//	rotateRate = 0; // This value will be updated in the pidWrite() method.
-				turnController.enable();
-			}
-
-			//	Sets the speed the the robot rotates at from the PID
-			rotateToAngleRate = turnController.get();
-
-			//	Prints setpoint and rotation rate
-			System.out.println(turnController.getSetpoint());
-			System.out.println(rotateToAngleRate);
-
-			if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
-				rotateCount++;
-			}
-
-			//	If the PID has slowed down to a certain point, exit the case
-			if((rotateToAngleRate < rotateThreshold && rotateToAngleRate > -rotateThreshold) && rotateCount > 4){
-				//	If we have, stop and return true
-				autoCase++;
-				firstFlag = true;
-			}
-
-			//	Makes the robot turn to angle
-			driveTrain.arcadeDrive(0, rotateToAngleRate, false);
-		}
-
-
-
-		public void teleopInit(){
-			driveTrain.setSafetyEnabled(true);
-
-			//	Resets the encoders
-			rightEncoder.reset();
+		//	Resets the encoders and the distance traveled the first time this enters
+		if(firstFlag){
 			leftEncoder.reset();
+			rightEncoder.reset();
 
+			rDistance = 0;
+			lDistance = 0;
+
+			System.out.println("resetting");
+
+			// Sets the Setpoint so the robot travels straight
+			straightController.setSetpoint(0);
+
+			firstFlag = false;
+		}
+
+		//	Enables the turn controller if it is not already
+		if (!straightController.isEnabled()) {
+			rotateToAngleRate = 0;
+			straightController.enable();
+		}
+
+		//	Gets the total distance from the encoders
+		//	This encoder must be inverted so that we get proper values
+		rDistance = rightEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
+
+		//	Prints distance from encoders
+		//		System.out.println(rDistance + "   " + lDistance);
+
+		//	Gets rate of rotation from PID
+		rotateToAngleRate = straightController.get();
+
+		//	Stops robot if target distance was reached and moves to the next case
+		if(targetDistance <= lDistance || targetDistance <= rDistance){
+			driveTrain.arcadeDrive(0, 0, false);
+			autoCase++;
+			firstFlag = true;
 			rDistance = 0;
 			lDistance = 0;
 		}
 
-		/**
-		 *  The code that runs periodically while the robot is in teleop mode
-		 */
-		public void teleopPeriodic() {
-			///*
-			//	Drives robot based on video game style controls, rTrigger is forward, lTrigger is reverse, left stick is turning
-			driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight)-pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
-			//		Timer.delay(0.05);
-
-			//	Sets rdistance to the right encoder value
-			rDistance = rightEncoder.getDistance();
-			lDistance = leftEncoder.getDistance();
-
-			System.out.println(rightEncoder.getRate());
-			//	Prints the encoder data.
-			//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
-
-			//			TODO More commented out crate arm closed and open
-			//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
-			if(copilotController.getAButtonReleased()){
-				grabberArm.setGrabberArm(ArmState.kClosed);
-			}
-
-			//  If B button on the copilot controller is pressed, open the crate arm
-			if(copilotController.getBButtonReleased()){
-				grabberArm.setGrabberArm(ArmState.kOpen);
-			}
-
-			//	Raises the arm if the right bumper is pressed
-			if(copilotController.getBumper(Hand.kRight)){
-				grabberArm.setAngleArm(AngleState.kRaised, -0.5);
-			}
-
-			//	Lowers arm if the left bumper is pressed
-			if(copilotController.getBumper(Hand.kLeft)){
-				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
-			}
-
-			//	TODO Cube grabber in Teleop 
-			//	If there is not a cube in the grabber and X button is pressed turn motors on to intake cube
-			if(copilotController.getXButton()){
-				//			if(grabberArm.detectCube() == false){
-				grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
-				//			}
-				//	If cube is detected stop intake motors
-				//			else if(grabberArm.detectCube()){
-				//				grabberArm.stopIntake();
-				//			}
-			}
-			//	Launches cube when Y button is pressed
-			else if (copilotController.getYButton()){
-				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
-			}
-
-			//	Controls for the climber based on copilot pressing the left trigger and right bumper 
-			if(Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > .1){
-				//climber.winchControl(1, false);
-			}
-
-			//		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
-			//System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
-			//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
-			//  The comparison is inverted due to the Y-stick naturally being inverted
-			if(copilotController.getY(Hand.kLeft) < -0.8){
-				climber.setClimbSolenoid(ClimbState.kExtend);
-				//System.out.println("here");
-			}
-			else if(copilotController.getY(Hand.kLeft) > 0.8){
-				climber.setClimbSolenoid(ClimbState.kRetract);
-			}
+		//	Drives straight forward if target is not reached
+		else{
+			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
 		}
-		@Override
-		/* This function is invoked periodically by the PID Controller, */
-		/* based upon navX MXP yaw angle input and PID Coefficients.    */
-		//	This method is required but unused
-		public void pidWrite(double output) {
-			//rotateToAngleRate = output;
+	}
+
+	/**
+	 * Method for driving straight in auton
+	 * @param targetDistance The distance you want to travel (in inches)
+	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
+	 * @param driveAngle Angle thaat is used as "zero" when going straight after turning
+	 */
+	public void StraightDriveAngle(double targetDistance, double speed, double driveAngle){
+
+		//	Resets the encoders and the distance traveled the first time this enters
+		if(firstFlag){
+			leftEncoder.reset();
+			rightEncoder.reset();
+
+			rDistance = 0;
+			lDistance = 0;
+
+			System.out.println("resetting");
+
+			// Sets the Setpoint so the robot travels straight
+			straightController.setSetpoint(driveAngle);
+
+			firstFlag = false;
 		}
 
+		//	Enables the turn controller if it is not already
+		if (!straightController.isEnabled()) {
+			rotateToAngleRate = 0;
+			straightController.enable();
+		}
 
-		public void testInit(){
+		//	Gets the total distance from the encoders
+		//	This encoder must be inverted so that we get proper values
+		rDistance = rightEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
+
+		//	Prints distance from encoders
+		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
+
+		//	Gets rate of rotation from PID
+		rotateToAngleRate = straightController.get();
+
+		//	Stops robot if target distance was reached and moves to the next case
+		if(targetDistance <= lDistance || targetDistance <= rDistance){
+			driveTrain.arcadeDrive(0, 0, false);
+			autoCase++;
+			firstFlag = true;
+			rDistance = 0;
+			lDistance = 0;
+		}
+
+		//	Drives straight forward if target is not reached
+		else{
+			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
+		}
+	}
+
+	/**
+	 * Method for rotating into the target angle in auton
+	 * @param targetAngle The angle we want to turn to (in degrees)
+	 */
+	public void RotateDrive(double targetAngle){
+		//  If this is the first time entering this method, sets target angle
+		if(firstFlag){
+			turnController.reset();
+			rotateCount = 0;
+			turnController.setSetpoint(targetAngle);
+			firstFlag = false;
+		}
+
+		//	 If the turn controller is not enabled, enable turn controller
+		if (!turnController.isEnabled()) {
+			//	rotateRate = 0; // This value will be updated in the pidWrite() method.
+			turnController.enable();
+		}
+
+		//	Sets the speed the the robot rotates at from the PID
+		rotateToAngleRate = turnController.get();
+
+		//	Prints setpoint and rotation rate
+		System.out.println(turnController.getSetpoint());
+		System.out.println(rotateToAngleRate);
+
+		if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
+			rotateCount++;
+		}
+
+		//	If the PID has slowed down to a certain point, exit the case
+		if((rotateToAngleRate < rotateThreshold && rotateToAngleRate > -rotateThreshold) && rotateCount > 4){
+			//	If we have, stop and return true
+			autoCase++;
+			firstFlag = true;
+		}
+
+		//	Makes the robot turn to angle
+		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
+	}
+
+
+
+	public void teleopInit(){
+		driveTrain.setSafetyEnabled(true);
+
+		//	Resets the encoders
+		rightEncoder.reset();
+		leftEncoder.reset();
+
+		rDistance = 0;
+		lDistance = 0;
+	}
+
+	/**
+	 *  The code that runs periodically while the robot is in teleop mode
+	 */
+	public void teleopPeriodic() {
+		///*
+		//	Drives robot based on video game style controls, rTrigger is forward, lTrigger is reverse, left stick is turning
+		driveTrain.arcadeDrive(pilotController.getTriggerAxis(Hand.kRight)-pilotController.getTriggerAxis(Hand.kLeft), pilotController.getX(Hand.kLeft), true);
+		//		Timer.delay(0.05);
+
+		//	Sets rdistance to the right encoder value
+		rDistance = rightEncoder.getDistance();
+		lDistance = leftEncoder.getDistance();
+
+		System.out.println(rightEncoder.getRate());
+		//	Prints the encoder data.
+		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
+
+		//			TODO More commented out crate arm closed and open
+		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
+		if(copilotController.getAButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kClosed);
 		}
 
+		//  If B button on the copilot controller is pressed, open the crate arm
+		if(copilotController.getBButtonReleased()){
+			grabberArm.setGrabberArm(ArmState.kOpen);
+		}
 
-		public void testPeriodic(){
-			if(copilotController.getAButton()){
-				grabberArm.setGrabberArm(ArmState.kClosed);;
-			}
-			else{
-				grabberArm.setGrabberArm(ArmState.kOpen);;
-			}
-			if(copilotController.getBButton()){
-				grabberArm.dSolLeft.set(Value.kOff);
-			}
-			System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
+		//	Raises the arm if the right bumper is pressed
+		if(copilotController.getBumper(Hand.kRight)){
+			grabberArm.setAngleArm(AngleState.kRaised, -0.5);
+		}
+
+		//	Lowers arm if the left bumper is pressed
+		if(copilotController.getBumper(Hand.kLeft)){
+			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+		}
+
+		//	TODO Cube grabber in Teleop 
+		//	If there is not a cube in the grabber and X button is pressed turn motors on to intake cube
+		if(copilotController.getXButton()){
+			//			if(grabberArm.detectCube() == false){
+			grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
+			//			}
+			//	If cube is detected stop intake motors
+			//			else if(grabberArm.detectCube()){
+			//				grabberArm.stopIntake();
+			//			}
+		}
+		//	Launches cube when Y button is pressed
+		else if (copilotController.getYButton()){
+			grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+		}
+
+		//	Controls for the climber based on copilot pressing the left trigger and right bumper 
+		if(Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > .1){
+			//climber.winchControl(1, false);
+		}
+
+		//		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
+		//System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
+		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
+		//  The comparison is inverted due to the Y-stick naturally being inverted
+		if(copilotController.getY(Hand.kLeft) < -0.8){
+			climber.setClimbSolenoid(ClimbState.kExtend);
+			//System.out.println("here");
+		}
+		else if(copilotController.getY(Hand.kLeft) > 0.8){
+			climber.setClimbSolenoid(ClimbState.kRetract);
 		}
 	}
+	@Override
+	/* This function is invoked periodically by the PID Controller, */
+	/* based upon navX MXP yaw angle input and PID Coefficients.    */
+	//	This method is required but unused
+	public void pidWrite(double output) {
+		//rotateToAngleRate = output;
+	}
+
+
+	public void testInit(){
+		grabberArm.setGrabberArm(ArmState.kClosed);
+	}
+
+
+	public void testPeriodic(){
+		if(copilotController.getAButton()){
+			grabberArm.setGrabberArm(ArmState.kClosed);;
+		}
+		else{
+			grabberArm.setGrabberArm(ArmState.kOpen);;
+		}
+		if(copilotController.getBButton()){
+			grabberArm.dSolLeft.set(Value.kOff);
+		}
+		System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
+	}
+}
