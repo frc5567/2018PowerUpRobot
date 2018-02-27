@@ -80,8 +80,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	double kDRotate = 0.001;
 	final double kFRotate = 0.00;
 
-	double kPRotate = 0.0067;
-	double kIRotate = 0.000007;
+	double kPRotate = 0.0078;
+	double kIRotate = 0.0001;
 
 	//	Constants for PID Controller for moving straight
 	double kDStraight = 0.105;
@@ -134,7 +134,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		frontLeftMotor = new VictorSP(0);
 		backLeftMotor = new VictorSP(1);
 		frontRightMotor = new VictorSP(2);
-		frontRightMotor.setInverted(false);
+		//	Changed to true for test robot, false for comp bot
+		frontRightMotor.setInverted(true);
 		backRightMotor = new VictorSP(3);
 
 		//  Instantiating Speed Controller Groups
@@ -305,14 +306,22 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(-100);
+					RotateDrive(-90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(140, 0.4, -100);
+					StraightDriveAngle(70, 0.4, -90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
+					RotateDrive(-135);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(4):
+					StraightDriveAngle(70, 0.4, -135);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(5):
 					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -628,12 +637,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Raises the arm if the right bumper is pressed
 		if(copilotController.getBumper(Hand.kRight)){
-			grabberArm.setAngleArm(AngleState.kRaised, -0.5);
+			grabberArm.setAngleArm(AngleState.kRaised, 0.5);
 		}
 
 		//	Lowers arm if the left bumper is pressed
 		if(copilotController.getBumper(Hand.kLeft)){
-			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+			grabberArm.setAngleArm(AngleState.kLowered, 0.4);
+			
 		}
 
 		//	TODO Cube grabber in Teleop 
