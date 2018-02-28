@@ -7,38 +7,94 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.MotorSafety;
 import edu.wpi.first.wpilibj.MotorSafetyHelper;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.PWMTalonSRX;
-import edu.wpi.first.wpilibj.can.CANStatus;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 
-public class CrateGrabber  implements MotorSafety {
+public abstract class Grabber implements MotorSafety {
+
+	//	Constants for arm position/rotation
+	//	Inverted targets for the test bot
+	final double kArmEncRaised = 120;
+	final double kArmEncInt = 135;
+	final double kArmEncIntBack = -180;
+	final double kArmEncLower = 0;
 	
+	//	Declares Enum for state of pneumatic arm for opening and closing CrateGrabber Arm
+	public enum ArmState {
+		kOpen(0),
+		kClosed(1);
+
+		private int armValue;
+
+		ArmState(int armValue) {
+			this.armValue = armValue;
+		}
+	}
+
+	//	Declares Enum for state of pneumatic arm for raising and lowering CrateGrabber Arm
+	public enum AngleState {
+		kInitial(0),
+		kRaised(1),
+		kLowered(2);
+
+		private int angleValue;
+
+		AngleState(int angleValue) {
+			this.setAngleValue(angleValue);
+		}
+
+		/**
+		 * @return the angleValue
+		 */
+		public int getAngleValue() {
+			return angleValue;
+		}
+
+		/**
+		 * @param angleValue the angleValue to set
+		 */
+		public void setAngleValue(int angleValue) {
+			this.angleValue = angleValue;
+		}
+	}
+
+	//	Declares Enum for state of pneumatic arm for running the motors to intaking and deposit a cube on the CrateGrabber Arm
+	public enum MotorState {
+		kOff(0),
+		kIntake(1),
+		kDeposit(2);
+
+		private int motorValue;
+
+		MotorState(int motorValue) {
+			this.motorValue = motorValue;
+		}
+	}
+
 	//	Declares motor safety helper
 	protected MotorSafetyHelper m_safetyHelper;
-	
+
 	//	Declares encoder for monitoring arm
 	Encoder armEncoder;
-	
+
 	//	Declaring arm wheel speed controllers
 	SpeedController leftArmMotor;
 	SpeedController rightArmMotor;
 	SpeedController raiseArmMotor;
-	
+
 	//	Declaring Double Solenoids for arm movement
 	DoubleSolenoid dSolLeft;
 	DoubleSolenoid dSolRight;
 	DoubleSolenoid dSolArm;
-	
+
 	//	Declaring drive train used to control arm wheels
 	DifferentialDrive driveTrain;
-	
+
 	//	Declaring switch plate for detecting cube
 	DigitalInput armSwitch;
-	
+
 	/**
 	 * Constructor for the Crate Grabber. Sets speeds and stuff.
 	 * 
@@ -52,92 +108,99 @@ public class CrateGrabber  implements MotorSafety {
 	 * @param backwardPortArm Port number for moving the vertical Double Solenoid down. DONT USE
 	 * @param raiseArmMotorPort Port number for the raise arm motor
 	 */
-	
-	public CrateGrabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft,/* int forwardPortRight, int backwardPortRight,
-			int forwardPortArm, int backwardPortArm*/ int raiseArmMotorPort){
+
+	public Grabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft){
 		//	Instantiating arm wheel speed controllers
 		leftArmMotor = new PWMTalonSRX(leftMotorArm);
 		rightArmMotor = new PWMTalonSRX(rightMotorArm);
-		raiseArmMotor = new VictorSP(raiseArmMotorPort);
-		
+
 		//	Instantiating drive train
 		driveTrain = new DifferentialDrive(leftArmMotor, rightArmMotor);
-		
+
 		//	Instantiating solenoid
 		dSolLeft = new DoubleSolenoid(forwardPortLeft, backwardPortLeft);
 		//dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
 		//dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
-		
+
 		//	Instantiating armswitch
 		armSwitch = new DigitalInput(0);
-		
-		//	Instantiates encoder for montitoring/controlling arm
+
+		//	Instantiates encoder for monitoring/controlling arm
 		armEncoder = new Encoder(2, 1, false, EncodingType.k1X);
-		
+
 		//	Sets up motor safety
 		setupMotorSafety();
 	}
-	
-	//	Method for opening the arms
+
+	/**Method to set the solenoid to open and close the CrateGrabber Arm
+	 * @param armValue The enum passed to set the solenoid value 
+	 */
+	public void setGrabberArm(ArmState armValue) {
+		switch (armValue) {
+		case kOpen:
+			dSolLeft.set(Value.kForward);
+			break;
+		case kClosed:
+			dSolLeft.set(Value.kReverse);
+			break;	
+		}
+
+	}
+
+	/*	//	Method for opening the arms
 	public void openGrabber(boolean openGrabber){
 		dSolLeft.set(Value.kForward);
 		//dSolRight.set(Value.kForward);
 	}
-	
+
 	//	Method for closing the arms
 	public void closeGrabber(boolean closeGrabber){
 		dSolLeft.set(Value.kReverse);
 		//dSolRight.set(Value.kForward);
+	}*/
+
+	public void setMotorArm(MotorState motorValue, double intakeSpeed, double cubeLaunchSpeed) {
+		switch(motorValue) {
+		case kOff:
+			driveTrain.tankDrive(0, 0, false);
+			break;
+		case kIntake:
+			driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
+			break;
+		case kDeposit:
+			driveTrain.tankDrive(-cubeLaunchSpeed, -cubeLaunchSpeed, false);
+			break;
+		}
 	}
-	
-	/**
+
+	/*	*//**
 	 * A method for intaking cubes
 	 * @param intakeSpeed The speed at which we want cubes to be taken in
-	 */
+	 *//*
 	public void cubeIntake(double intakeSpeed){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
-	
-	/**
-	 * A method for launching cubes
-	 * Launch speed is inverted in class to cause the motors to spin the reverse of intake
-	 * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
-	 */
+
+	  *//**
+	  * A method for launching cubes
+	  * Launch speed is inverted in class to cause the motors to spin the reverse of intake
+	  * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
+	  *//*
 	public void launchCube(double launchSpeed){
 		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}
-	
+
 	//	Stop intake
 	public void stopIntake(){
 		driveTrain.tankDrive(0, 0, false);
-	}
-	
+	}*/
+
 	//	Method for detecting when a cube is in our grasp
 	public boolean detectCube(){
 		return armSwitch.get();
 	}
-	
-	//	Method for raising arm
-	public void raiseArm(double speed){
-		if(armEncoder.getRaw() >= 20){
-			raiseArmMotor.set(0);
-		}
-		else{
-		raiseArmMotor.set(speed);
-		}
-		//dSolArm.set(Value.kForward);
-	}
-	
-	//	Method for lowering arm
-	public void lowerArm(double speed){
-		if(armEncoder.getRaw() <= 0){
-			raiseArmMotor.set(0);
-		}
-		else{
-		raiseArmMotor.set(-speed);
-		}
-		//dSolArm.set(Value.kReverse);
-	}
+
+	public abstract void setAngleArm(AngleState angleValue, double speed);
 
 	//	Below lies the required motor safety methods
 	@Override
@@ -165,7 +228,6 @@ public class CrateGrabber  implements MotorSafety {
 		}
 	}
 
-
 	@Override
 	public void setSafetyEnabled(boolean enabled) {
 		m_safetyHelper.setSafetyEnabled(enabled);
@@ -181,12 +243,10 @@ public class CrateGrabber  implements MotorSafety {
 		// TODO Auto-generated method stub
 		return "CrateGrabber";
 	}
-	
+
 	private void setupMotorSafety() {
 		m_safetyHelper = new MotorSafetyHelper(this);
 		m_safetyHelper.setExpiration(.1);
 		m_safetyHelper.setSafetyEnabled(true);
 	}
-	
-	
 }
