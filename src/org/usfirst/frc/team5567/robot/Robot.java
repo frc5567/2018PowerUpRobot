@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Timer;
@@ -74,14 +75,21 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	int rotateCount;
 
 	//	Declares Threshold for counting zeroes while turning in auto
-	double rotateThreshold = 0.1;
+	double rotateThreshold = 0.2;
 
-	//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
+	//	Rotate PID Constants for testing 3/1/2018
+	double kDRotate = 0.015;
+	double kFRotate = 0.00;
+	double kPRotate = 0.0078;
+	double kIRotate = 0.0001;
+	
+	//	Comp values
+	/*//	Rotational Constants for turning x degrees where x is kTargetAngleDegrees
 	double kDRotate = 0.001;
 	final double kFRotate = 0.00;
 
 	double kPRotate = 0.0078;
-	double kIRotate = 0.0001;
+	double kIRotate = 0.0001;*/
 
 	//	Constants for PID Controller for moving straight
 	double kDStraight = 0.105;
@@ -93,7 +101,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	//	Declaring PID variables 
 	double testSpd = .4;
 	double newSpd = 0;
-	static final double kToleranceDegrees = 1;    
+	
+	//	Tolerance in degrees for the PID controller in the different driving modes (straight and rotating)
+	static final double kToleranceRotate = 1;
+	static final double kToleranceStraight = 0.1;
+	
 	static final double kTargetAngleDegrees = 90;
 
 	//	Declaring the USB Camera
@@ -121,6 +133,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	private static final String kRightPosition = "Right Position";
 	private static final String kLeftPosition = "Left Auton";
 	private static final String kNoMoveAuton = "No Move Auton";
+	private static final String kStraightAuton = "Straight Auton";
 	private String m_dashboardAutoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 
@@ -130,13 +143,21 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 * This is our robot's constructor.
 	 */
 	public Robot() {
-		//  Instantiating Speed Controllers and assigned ports
+		frontLeftMotor = new Spark(0);
+		backLeftMotor = new Spark(1);
+		frontRightMotor = new Spark(2);
+		backRightMotor = new Spark(3);
+		//	Set on test robot, false for comp bot
+		frontRightMotor.setInverted(true);
+		
+		//	Comp motor Controllers
+		/*//  Instantiating Speed Controllers and assigned ports
 		frontLeftMotor = new VictorSP(0);
 		backLeftMotor = new VictorSP(1);
 		frontRightMotor = new VictorSP(2);
 		//	Changed to true for test robot, false for comp bot
 		frontRightMotor.setInverted(true);
-		backRightMotor = new VictorSP(3);
+		backRightMotor = new VictorSP(3);*/
 
 		//  Instantiating Speed Controller Groups
 		leftMotors = new SpeedControllerGroup(frontLeftMotor, backLeftMotor);
@@ -170,16 +191,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Sets up the rotation PID
 		turnController = new PIDController(kPRotate, kIRotate, kDRotate, kFRotate, ahrs, this, 0.02);
 		turnController.setInputRange(-180.0f,  180.0f);
-		turnController.setOutputRange(-.3, .3);
-		turnController.setAbsoluteTolerance(kToleranceDegrees);
+		turnController.setOutputRange(-.4, .4);
+		turnController.setAbsoluteTolerance(kToleranceRotate);
 		turnController.setContinuous(true);
 		turnController.disable();
 
 		//	Sets up the straight PID
 		straightController = new PIDController(kPStraight, kIStraight, kDStraight, kFStraight, ahrs, this, 0.02);
 		straightController.setInputRange(-180.0f,  180.0f);
-		straightController.setOutputRange(-.3, .3);
-		straightController.setAbsoluteTolerance(kToleranceDegrees);
+		straightController.setOutputRange(-.8, .8);
+		straightController.setAbsoluteTolerance(kToleranceStraight);
 		straightController.setContinuous(true);
 		straightController.disable();
 
@@ -234,6 +255,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addDefault("No Move Auton", kNoMoveAuton);
 		m_chooser.addObject("Right Position", kRightPosition);
 		m_chooser.addObject("Left Position", kLeftPosition);
+		m_chooser.addObject("Straight Auton", kStraightAuton);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
 		climber.setClimbSolenoid(ClimbState.kOff);
@@ -295,6 +317,35 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void autonomousPeriodic(){
 
 		switch (m_dashboardAutoSelected) {
+		case kStraightAuton:
+			switch(fmsAutoSelected) {
+			case L:
+				switch(autoCase){
+				//  Drives straight
+				case(0):
+					StraightDriveAngle(70, 0.8, -20);
+				break;
+				case(1):
+					StraightDriveAngle(0, 0.0, 0);
+				break;
+				default:
+				break;
+				}
+				break;
+		case R:
+			switch(autoCase){
+			//  Drives straight
+			case(0):
+				StraightDriveAngle(70, 0.8, 20);
+			break;
+			case(1):
+				StraightDriveAngle(0, 0.0, 0);
+			break;
+			default:
+			break;
+			}
+			}
+			break;
 		case kRightPosition:
 			switch(fmsAutoSelected) {
 			case L:
@@ -302,7 +353,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(210, 0.6, 0);
+					StraightDriveAngle(204, 0.8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -310,18 +361,26 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(70, 0.4, -90);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+					StraightDriveAngle(194, 0.8, -90);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
-					RotateDrive(-135);
+					RotateDrive(-180);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(70, 0.4, -135);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+					StraightDriveAngle(89, 0.8, -180);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(5):
+					RotateDrive(90);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(6):
+					StraightDriveAngle(10, 0.8, 90);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(7):
 					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -402,9 +461,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 				//				Left auto Code here
 				switch(autoCase){
-				//  Drives straight
 				case(0):
-					StraightDriveAngle(168, 0.6, 0);
+					StraightDriveAngle(198, 0.8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -412,10 +470,26 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(10, 0.4, 90);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+					StraightDriveAngle(219, 0.8, 90);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
+					RotateDrive(180);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(4):
+					StraightDriveAngle(52, 0.8, 180);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(5):
+					RotateDrive(-90);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(6):
+					StraightDriveAngle(4, 0.8, -90);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(7):
 					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -456,6 +530,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 			rDistance = 0;
 			lDistance = 0;
+			
+			straightController.reset();
+			straightController.enable();
 
 			System.out.println("resetting");
 
@@ -514,6 +591,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			lDistance = 0;
 
 			System.out.println("resetting");
+			
+			straightController.reset();
+			straightController.enable();
 
 			// Sets the Setpoint so the robot travels straight
 			straightController.setSetpoint(driveAngle);
@@ -539,8 +619,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rotateToAngleRate = straightController.get();
 
 		//	Stops robot if target distance was reached and moves to the next case
-		if(targetDistance <= lDistance || targetDistance <= rDistance){
+		if(targetDistance <= lDistance /*|| targetDistance <= rDistance*/){
 			driveTrain.arcadeDrive(0, 0, false);
+			
+			turnController.reset();
+			
 			autoCase++;
 			firstFlag = true;
 			rDistance = 0;
@@ -563,6 +646,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			turnController.reset();
 			rotateCount = 0;
 			turnController.setSetpoint(targetAngle);
+			
+			turnController.reset();
+			turnController.enable();
+			
 			firstFlag = false;
 		}
 
@@ -578,6 +665,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Prints setpoint and rotation rate
 		System.out.println(turnController.getSetpoint());
 		System.out.println(rotateToAngleRate);
+		System.out.println(ahrs.getAngle());
 
 		if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
 			rotateCount++;
@@ -620,7 +708,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rDistance = rightEncoder.getDistance();
 		lDistance = leftEncoder.getDistance();
 
-		System.out.println(rightEncoder.getRate());
+		System.out.println(leftEncoder.getRate());
 		//	Prints the encoder data.
 		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
