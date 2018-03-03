@@ -17,22 +17,21 @@ public class CrateGrabberMotor extends Grabber {
 			int raiseArmMotorPort) {
 		super(leftMotorArm, rightMotorArm, forwardPortLeft, backwardPortLeft);
 		raiseArmMotor = new VictorSP(raiseArmMotorPort);
-		//	Inverted the motor for the test bot
-		raiseArmMotor.setInverted(true);
+		//	Changed Encoder Direction for test bot only
+		armEncoder.setReverseDirection(true);
 	}
-
+	
 	@Override
 	public void setAngleArm(AngleState angleValue, double speed){
 		switch(angleValue) {
 		case kInitial:
-//			Reversed signs for test bot - originally <, >
-			if(armEncoder.getRaw() > kArmEncInt-3){ //&& armEncoder.getRaw() >= kArmEncIntBack) {
-				raiseArmMotor.set(-speed); //Lowers arms
+			if(armEncoder.getRaw() < kArmEncInt-3){ //&& armEncoder.getRaw() >= kArmEncIntBack) {
+				raiseArmMotor.set(speed); //Lowers arms
 				System.out.println("armEnc:\t"+armEncoder.getRaw());
 //				Robot.autoCase++;
 			}
-			else if(armEncoder.getRaw() < kArmEncInt+3){//kArmEncIntBack){
-				raiseArmMotor.set(speed); //Raises arms
+			else if(armEncoder.getRaw() > kArmEncInt+3){//kArmEncIntBack){
+				raiseArmMotor.set(-speed); //Raises arms
 				System.out.println("armEnc:\t"+armEncoder.getRaw());
 			}
 			else {
@@ -41,15 +40,15 @@ public class CrateGrabberMotor extends Grabber {
 				System.out.println("armEnc:\t"+armEncoder.getRaw());
 			}
 			break;
-			//	Reversed signs for test bot - originally <, >
+			
 			case kRaised:
-				if(armEncoder.getRaw() > kArmEncRaised+3) {
-					raiseArmMotor.set(-speed);
+				if(armEncoder.getRaw() < kArmEncRaised+3) {
+					raiseArmMotor.set(speed);
 					System.out.println("armEnc:\t"+armEncoder.getRaw());
 //					Robot.autoCase++;
 				}
-				else if(armEncoder.getRaw() < kArmEncRaised-3) {
-					raiseArmMotor.set(speed);
+				else if(armEncoder.getRaw() > kArmEncRaised-3) {
+					raiseArmMotor.set(-speed);
 					System.out.println("armEnc:\t"+armEncoder.getRaw());
 				}
 				else {
@@ -58,8 +57,8 @@ public class CrateGrabberMotor extends Grabber {
 				}
 				break;
 			case kLowered:
-				//	Changed from >= to <= for the test bot inverted
-				if(armEncoder.getRaw() <= kArmEncLower) {
+				
+				if(armEncoder.getRaw() >= kArmEncLower) {
 					raiseArmMotor.set(0);
 					System.out.println("armEnc:\t"+armEncoder.getRaw());
 //					Robot.autoCase++;
