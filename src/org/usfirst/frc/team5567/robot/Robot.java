@@ -232,7 +232,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 
 		//climber = new RobotClimber(6, 7, 6, 7);
-		climber = new RobotClimber(6,7,0,1);
+		
+		// COMP ROBOT
+		//climber = new RobotClimber(6,7,0,1);
+
+		// Test Robot
+		climber = new RobotClimber(6,7,2,1);
 
 	}
 
@@ -725,7 +730,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	Raises the arm if the right bumper is pressed
 		if(copilotController.getBumper(Hand.kRight)){
-			grabberArm.setAngleArm(AngleState.kRaised, 0.5);
+			grabberArm.setAngleArm(AngleState.kRaised, 0.7);
 		}
 
 		//	Lowers arm if the left bumper is pressed
@@ -791,6 +796,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		if(copilotController.getBButton()){
 			grabberArm.dSolLeft.set(Value.kOff);
 		}
-		System.out.println(copilotController.getTriggerAxis(Hand.kLeft));
+		System.out.println(grabberArm.armSwitch.get());
+		System.out.println(grabberArm.armEncoder.getRaw());
 	}
 }
