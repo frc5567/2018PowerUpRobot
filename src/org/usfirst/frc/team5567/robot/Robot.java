@@ -103,7 +103,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	double newSpd = 0;
 	
 	//	Tolerance in degrees for the PID controller in the different driving modes (straight and rotating)
-	static final double kToleranceRotate = 1;
+	static final double kToleranceRotate = 3;
 	static final double kToleranceStraight = 0.1;
 	
 	static final double kTargetAngleDegrees = 90;
@@ -263,8 +263,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addObject("Straight Auton", kStraightAuton);
 
 		SmartDashboard.putData("Auto choices", m_chooser);
-		climber.setClimbSolenoid(ClimbState.kOff);
-		grabberArm.setGrabberArm(ArmState.kOpen);
+		climber.setClimbSolenoid(ClimbState.kRetract);
+		grabberArm.setGrabberArm(ArmState.kClosed);
 
 		Timer.delay(1);
 		grabberArm.armEncoder.reset();
@@ -321,6 +321,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void autonomousPeriodic(){
 
+		System.out.println(autoCase);
 		switch (m_dashboardAutoSelected) {
 		case kStraightAuton:
 			switch(fmsAutoSelected) {
@@ -363,6 +364,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				break;
 				case(1):
 					RotateDrive(-90);
+					if(ahrs.getAngle() > -95 && ahrs.getAngle() < -85) {
+						autoCase++;
+						firstFlag = true;
+					}
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
@@ -370,15 +375,41 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
+					RotateDrive(135);
+				if(ahrs.getAngle() > -230 && ahrs.getAngle() < -220) {
+					autoCase++;
+					firstFlag = true;
+				}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(4):
+					StraightDriveAngle(30, 0.8, 135);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				break;
+				case(5):
+					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				Timer.delay(1.5);
+				autoCase++;
+				break;
+				/*case(3):
 					RotateDrive(-180);
+				if(ahrs.getAngle() > -185 && ahrs.getAngle() < -175) {
+					autoCase++;
+					firstFlag = true;
+				}
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(89, 0.8, -180);
+					StraightDriveAngle(50, 0.8, -180);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(5):
 					RotateDrive(90);
+				if(ahrs.getAngle() > -275 && ahrs.getAngle() < -265) {
+					autoCase++;
+					firstFlag = true;
+				}
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(6):
@@ -390,7 +421,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
 				autoCase++;
-				break;
+				break;*/
 				default:
 					break;
 				}
@@ -439,18 +470,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(210, 0.6, 0);
+					StraightDriveAngle(130/*210*/, .8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(100);
+					RotateDrive(90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(140, 0.4, 100);
+					StraightDriveAngle(25, 0.6, 90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
+					StraightDriveAngle(25, 0.25, 90);
 					grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -618,7 +650,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		lDistance = leftEncoder.getDistance();
 
 		//	Prints distance from encoders
-		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
+//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
 		//	Gets rate of rotation from PID
 		rotateToAngleRate = straightController.get();
@@ -628,7 +660,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			driveTrain.arcadeDrive(0, 0, false);
 			
 			turnController.reset();
-			
+			System.out.println("here");
 			autoCase++;
 			firstFlag = true;
 			rDistance = 0;
@@ -668,11 +700,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		rotateToAngleRate = turnController.get();
 
 		//	Prints setpoint and rotation rate
-		System.out.println(turnController.getSetpoint());
-		System.out.println(rotateToAngleRate);
-		System.out.println(ahrs.getAngle());
+//		System.out.println(turnController.getSetpoint());
+//		System.out.println(rotateToAngleRate);
+//		System.out.println(ahrs.getAngle());
 
-		if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
+		/*if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
 			rotateCount++;
 		}
 
@@ -681,7 +713,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			//	If we have, stop and return true
 			autoCase++;
 			firstFlag = true;
-		}
+		}*/
 
 		//	Makes the robot turn to angle
 		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
@@ -741,9 +773,9 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		//	TODO Cube grabber in Teleop 
 		//	If there is not a cube in the grabber and X button is pressed turn motors on to intake cube
-		if(copilotController.getXButton()){
+		if(Math.abs(copilotController.getTriggerAxis(Hand.kRight))>0.1){
 			//			if(grabberArm.detectCube() == false){
-			grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
+			grabberArm.setMotorArm(MotorState.kIntake, copilotController.getTriggerAxis(Hand.kRight), cubeLaunchSpeed);
 			//			}
 			//	If cube is detected stop intake motors
 			//			else if(grabberArm.detectCube()){
@@ -751,13 +783,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			//			}
 		}
 		//	Launches cube when Y button is pressed
-		else if (copilotController.getYButton()){
-			grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+		else if (Math.abs(copilotController.getTriggerAxis(Hand.kLeft))>0.1){
+			grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, copilotController.getTriggerAxis(Hand.kLeft));
 		}
 
 		//	Controls for the climber based on copilot pressing the left trigger and right bumper 
-		if(Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > .1){
-			//climber.winchControl(1, false);
+		if((copilotController.getXButton())){
+			//TODO: update winch speeds in RobotClimber
+			climber.winchControl(-.3, false);
+		}
+		
+		if(copilotController.getYButton()){
+			climber.winchControl(-.7, false);
 		}
 
 		//		climber.winchControl(copilotController.getTriggerAxis(Hand.kLeft), false);//copilotController.getBumper(Hand.kRight));
