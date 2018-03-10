@@ -30,8 +30,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //  This is the main robot that we use in competition.
 public class Robot extends IterativeRobot implements PIDOutput {
-	
-	//	TODO
+
 	//	Declares Enum for changing the control method for grabber
 	public enum GrabberMode {
 		kAutomatic(0),
@@ -57,12 +56,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			this.grabberMode = grabberMode;
 		}
 	}
-	
+
 	//	global variables
 
 	//	Temporary flag to tell us what state we are in until I figure out enums
 	boolean manualGrabberControl = true;
-	
+
 	//	Sets the type of grabber where true is motor and false is Solonoid
 	private static final boolean ARM_TYPE = true;
 	//  Declaring strings for the auton based on FMS data
@@ -377,17 +376,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(56, 0.8, -60);
+					StraightDriveAngle(56, 0.8, -60, true);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-				StraightDriveAngle(25, 0.3, 0);
+				StraightDriveAngle(25, 0.3, 0, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(28, 0.3, 0);
+					StraightDriveAngle(28, 0.3, 0, true);
 				System.out.println(leftEncoder.getDistance());
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
@@ -400,11 +399,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(28, 0.3, 0);
+					StraightDriveAngle(28, 0.3, 0, true);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				//	TODO
+				
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -422,19 +421,18 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight 
 				case(0):
-					StraightDriveAngle(66, 0.8, 15);
+					StraightDriveAngle(66, 0.8, 15, true);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-				StraightDriveAngle(25, 0.3, 15);
+				StraightDriveAngle(25, 0.3, 15, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(28, 0.3, 15);
+					StraightDriveAngle(28, 0.3, 15, true);
 				System.out.println(leftEncoder.getDistance());
-				//	TODO
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -446,11 +444,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(28, 0.3, 15);
+					StraightDriveAngle(28, 0.3, 15, true);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				//	TODO
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -459,6 +456,68 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					autoCase++;
 				}
 				break;
+				case(4):
+					StraightDriveAngle(-66, -0.8, 15, false);
+				System.out.println(leftEncoder.getDistance());
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(5):
+					System.out.println(leftEncoder.getDistance());
+				StraightDriveAngle(-25, -0.3, 15, false);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(6):
+					RotateDrive(0);
+				break;
+				case(7):
+					grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+				if(!breakBeam.get()){
+					autoCase++;
+				}
+				else{
+					pixyCamera.centerOnObject(driveTrain);
+				}
+				break;
+				case(8):
+					StraightDriveAngle(-90, -0.5, 0, false);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(9):
+					StraightDriveAngle(66, 0.8, 15, true);
+				System.out.println(leftEncoder.getDistance());
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(10):
+					System.out.println(leftEncoder.getDistance());
+				StraightDriveAngle(25, 0.3, 15, true);
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(12):
+					StraightDriveAngle(28, 0.3, 15, true);
+				System.out.println(leftEncoder.getDistance());
+				System.out.println(Timer.getFPGATimestamp());
+				if(matchTimer == 0){
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if((Timer.getFPGATimestamp() - matchTimer) > 1){
+					autoCase++;
+					matchTimer = 0;
+				}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case(13):
+					StraightDriveAngle(28, 0.3, 15, true);
+				System.out.println(leftEncoder.getDistance());
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
+				System.out.println(Timer.getFPGATimestamp());
+				if(matchTimer == 0){
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if((Timer.getFPGATimestamp() - matchTimer) > 1){
+					autoCase++;
+				}
+
 				default:
 					grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeIntakeSpeed);
 					break;
@@ -472,7 +531,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(204, 0.8, 0);
+					StraightDriveAngle(204, 0.8, 0, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -484,7 +543,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(194, 0.8, -90);
+					StraightDriveAngle(194, 0.8, -90, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
@@ -496,7 +555,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(30, 0.8, 135);
+					StraightDriveAngle(30, 0.8, 135, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(5):
@@ -550,7 +609,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(/*168*/ 130, 0.6, 0);
+					StraightDriveAngle(/*168*/ 130, 0.6, 0, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -562,21 +621,21 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				}
 				break;
 				case(2):
-					StraightDriveAngle(10, 0.4, -90);
+					StraightDriveAngle(10, 0.4, -90, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(25, 0.25, -90);
+					StraightDriveAngle(25, 0.25, -90, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
 				autoCase++;
 				break;
 				case(4):	//	Cube delivered, drive away
-					StraightDriveAngle(-40, -.5, -30);					
+					StraightDriveAngle(-40, -.5, -30, false);					
 				break;
 				case(5):	//	Drive towards the center
-					StraightDriveAngle(40, .5, -120);
+					StraightDriveAngle(40, .5, -120, true);
 				break;
 				default:
 					break;
@@ -597,7 +656,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(130/*210*/, .8, 0);
+					StraightDriveAngle(130/*210*/, .8, 0, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -605,11 +664,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(25, 0.6, 90);
+					StraightDriveAngle(25, 0.6, 90, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(25, 0.25, 90);
+					StraightDriveAngle(25, 0.25, 90, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -626,7 +685,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				//				Left auto Code here
 				switch(autoCase){
 				case(0):
-					StraightDriveAngle(198, 0.8, 0);
+					StraightDriveAngle(198, 0.8, 0, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
@@ -634,7 +693,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(219, 0.8, 90);
+					StraightDriveAngle(219, 0.8, 90, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
@@ -642,7 +701,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(52, 0.8, 180);
+					StraightDriveAngle(52, 0.8, 180, true);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(5):
@@ -650,7 +709,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(6):
-					StraightDriveAngle(4, 0.8, -90);
+					StraightDriveAngle(4, 0.8, -90, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(7):
@@ -742,9 +801,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 * Method for driving straight in auton
 	 * @param targetDistance The distance you want to travel (in inches)
 	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-	 * @param driveAngle Angle thaat is used as "zero" when going straight after turning
+	 * @param driveAngle Angle that is used as "zero" when going straight after turning
+	 * @param direction	The direction the robot will move where forwards is true
 	 */
-	public void StraightDriveAngle(double targetDistance, double speed, double driveAngle){
+	public void StraightDriveAngle(double targetDistance, double speed, double driveAngle, boolean direction){
 
 		//	Resets the encoders and the distance traveled the first time this enters
 		if(firstFlag){
@@ -782,22 +842,40 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Gets rate of rotation from PID
 		rotateToAngleRate = straightController.get();
 
-		//	Stops robot if target distance was reached and moves to the next case
-		if(targetDistance <= lDistance /*|| targetDistance <= rDistance*/){
-			driveTrain.arcadeDrive(0, 0, false);
+		if(direction){
+			//	Stops robot if target distance was reached and moves to the next case
+			if(targetDistance <= lDistance /*|| targetDistance <= rDistance*/){
+				driveTrain.arcadeDrive(0, 0, false);
 
-			turnController.reset();
-			System.out.println("here");
-			autoCase++;
-			firstFlag = true;
-			rDistance = 0;
-			lDistance = 0;
+				turnController.reset();
+				System.out.println("here");
+				autoCase++;
+				firstFlag = true;
+				rDistance = 0;
+				lDistance = 0;
+			}
+			//		Drives straight forward if target is not reached
+			else{
+				driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
+			}
 		}
+		else if (!direction){
+			if(targetDistance >= lDistance /*|| targetDistance <= rDistance*/){
+				driveTrain.arcadeDrive(0, 0, false);
 
-		//	Drives straight forward if target is not reached
-		else{
-			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
-		}
+				turnController.reset();
+				System.out.println("here");
+				autoCase++;
+				firstFlag = true;
+				rDistance = 0;
+				lDistance = 0;	
+			}
+			//			Drives straight forward if target is not reached
+			else{
+				driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
+			}
+		}	
+
 	}
 
 	/**
@@ -857,10 +935,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		rDistance = 0;
 		lDistance = 0;
-		
+
 		GrabberMode.kManual.setGrabberMode(1);
-		
-		
+
+
 	}
 
 	/**
@@ -879,22 +957,22 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		System.out.println(leftEncoder.getRate());
 		//	Prints the encoder data.
 		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
-		
-		//	Controls grabber based on selected mode	//TODO
+
+		//	Controls grabber based on selected mode
 		if(copilotController.getStartButtonReleased()){
 			manualGrabberControl = true;
 		}
 		else if(copilotController.getBackButtonReleased()){
 			manualGrabberControl = false;
 		}
-		
+
 		if(manualGrabberControl){
 			grabberControl(GrabberMode.kManual);
 		}
 		else{
 			grabberControl(GrabberMode.kAutomatic);
 		}
-		
+
 		//	Raises the arm if the right bumper is pressed
 		if(copilotController.getBumper(Hand.kRight)){
 			grabberArm.setAngleArm(AngleState.kRaised, 0.7);
@@ -914,7 +992,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		if(copilotController.getYButton()){
 			climber.winchControl(-.7, false);
 		}
-		
+
 		//	If the Y stick is pressed up, extend the climber. If it is pulled back, retract the climber
 		//  The comparison is inverted due to the Y-stick naturally being inverted
 		if(copilotController.getY(Hand.kLeft) < -0.8){
@@ -924,8 +1002,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			climber.setClimbSolenoid(ClimbState.kRetract);
 		}
 	}
-	
-	//	TODO
+
 	public void grabberControl(GrabberMode grabberMode){
 		switch(grabberMode){
 		case kAutomatic:
@@ -945,8 +1022,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			else{
 				grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
 			}*/
-			
-			
+
+
 			break;
 		case kManual: 
 			//	Intakes cube when  right trigger is pressed
@@ -965,16 +1042,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			if(copilotController.getBButtonReleased()){
 				grabberArm.setGrabberArm(ArmState.kOpen);
 			}
-			
+
 			break;
 		default:
 			break;
-		
+
 		}
-			
-		
-		}
-		
+
+
+	}
+
 	@Override
 	/* This function is invoked periodically by the PID Controller, */
 	/* based upon navX MXP yaw angle input and PID Coefficients.    */
