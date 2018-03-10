@@ -32,7 +32,37 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //  This is the main robot that we use in competition.
 public class Robot extends IterativeRobot implements PIDOutput {
+	
+//	Declares Enum for changing the control method for grabber
+	public enum GrabberMode {
+		kAutomatic(0),
+		kManual(1);
+
+		private int grabberMode;
+
+		GrabberMode(int grabberMode) {
+			this.setGrabberMode(grabberMode);
+		}
+
+		/**
+		 * @return the grabberMode
+		 */
+		public int getGrabberMode() {
+			return grabberMode;
+		}
+
+		/**
+		 * @param grabberMode the grabberMode to set
+		 */
+		public void setGrabberMode(int grabberMode) {
+			this.grabberMode = grabberMode;
+		}
+	}
+	
 	//	global variables
+	
+	//	Temporary flag to tell us what state we are in until I figure out enums
+	boolean manualGrabberControl = true;
 	
 	//	Declaring DigitalInput for the IR break beam sensor used to detect cubes
 	final DigitalInput boxTrip;
@@ -858,6 +888,24 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//	Prints the encoder data.
 		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
+
+		//	Controls grabber based on selected mode	//TODO
+		if(copilotController.getStartButtonReleased()){
+			manualGrabberControl = true;
+			SmartDashboard.putBoolean("Pilot Control", manualGrabberControl);
+		}
+		else if(copilotController.getBackButtonReleased()){
+			manualGrabberControl = false;
+			SmartDashboard.putBoolean("Pilot Control", manualGrabberControl);
+		}
+		
+		if(manualGrabberControl){
+			grabberControl(GrabberMode.kManual);
+		}
+		else{
+			grabberControl(GrabberMode.kAutomatic);
+		}
+		
 		//			TODO More commented out crate arm closed and open
 		if(copilotController.getBButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kOpen);
@@ -918,8 +966,56 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 		else if(copilotController.getY(Hand.kLeft) > 0.8){
 			climber.setClimbSolenoid(ClimbState.kRetract);
-		}
+		}		
 	}
+	
+	public void grabberControl(GrabberMode grabberMode){
+		switch(grabberMode){
+		case kAutomatic:
+			//	Sendable chooser stuff here
+			if(!breakBeam.get()){
+				grabberArm.setGrabberArm(ArmState.kClosed);
+				//	grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeLaunchSpeed);
+			}
+			else{
+				//	grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
+				grabberArm.setGrabberArm(ArmState.kOpen);
+			}
+			/*if(!breakBeam2.get()){
+				manualGrabberControl = true;
+				grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeLaunchSpeed);
+			}
+			else{
+				grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
+			}*/
+			
+			
+			break;
+		case kManual: 
+			//	Intakes cube when  right trigger is pressed
+			if(Math.abs(copilotController.getTriggerAxis(Hand.kRight))>0.1){
+				grabberArm.setMotorArm(MotorState.kIntake, copilotController.getTriggerAxis(Hand.kRight), cubeLaunchSpeed);
+			}
+			//	Launches cube when left trigger is pressed
+			else if (Math.abs(copilotController.getTriggerAxis(Hand.kLeft))>0.1){
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, copilotController.getTriggerAxis(Hand.kLeft));
+			}
+			//	Closes arms when A button is pressed
+			if(copilotController.getAButtonReleased()){
+				grabberArm.setGrabberArm(ArmState.kClosed);
+			}
+			//  Opens arms when B button is pressed
+			if(copilotController.getBButtonReleased()){
+				grabberArm.setGrabberArm(ArmState.kOpen);
+			}
+			
+			break;
+		default:
+			break;
+		
+		}
+	}	
+	
 	@Override
 	/* This function is invoked periodically by the PID Controller, */
 	/* based upon navX MXP yaw angle input and PID Coefficients.    */
