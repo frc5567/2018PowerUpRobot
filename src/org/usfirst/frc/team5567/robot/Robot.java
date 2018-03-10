@@ -392,7 +392,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				break;
 			case R:
 				switch(autoCase){
-				//  Drives straight
+				//  Drives straight 
 				case(0):
 					StraightDriveAngle(66, 0.8, 15);
 				System.out.println(leftEncoder.getDistance());
