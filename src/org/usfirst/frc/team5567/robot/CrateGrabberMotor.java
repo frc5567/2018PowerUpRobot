@@ -26,12 +26,12 @@ public class CrateGrabberMotor extends Grabber {
 	public void setAngleArm(AngleState angleValue, double speed){
 		switch(angleValue) {
 		case kInitial:
-			if(armEncoder.getRaw() < kArmEncInt-3){ //&& armEncoder.getRaw() >= kArmEncIntBack) {
+			if(armEncoder.getRaw() < armEncInit-3){ //&& armEncoder.getRaw() >= kArmEncIntBack) {
 				raiseArmMotor.set(speed); //Lowers arms
 				System.out.println("armEnc:\t"+armEncoder.getRaw());
 //				Robot.autoCase++;
 			}
-			else if(armEncoder.getRaw() > kArmEncInt+3){//kArmEncIntBack){
+			else if(armEncoder.getRaw() > armEncInit+3){//kArmEncIntBack){
 				raiseArmMotor.set(-speed); //Raises arms
 				System.out.println("armEnc:\t"+armEncoder.getRaw());
 			}
@@ -43,12 +43,12 @@ public class CrateGrabberMotor extends Grabber {
 			break;
 			
 			case kRaised:
-				if(armEncoder.getRaw() < kArmEncRaised+3) {
+				if(armEncoder.getRaw() < armEncRaised+3) {
 					raiseArmMotor.set(speed);
 					System.out.println("armEnc:\t"+armEncoder.getRaw());
 //					Robot.autoCase++;
 				}
-				else if(armEncoder.getRaw() > kArmEncRaised-3) {
+				else if(armEncoder.getRaw() > armEncRaised-3) {
 					raiseArmMotor.set(-speed);
 					System.out.println("armEnc:\t"+armEncoder.getRaw());
 				}

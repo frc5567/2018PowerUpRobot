@@ -12,7 +12,7 @@ public class PixyCrate {
 	public static final double STOP_AREA = 0.1;
 	public static final double CENTER_POSITION = 0.5;
 	public static final double CENTER_THRESHOLD = 0.075;
-	public static final double ROTATION_SPEED = 0.15;
+	public static final double ROTATION_SPEED = 0.25;
 	public static final double DRIVE_SPEED = 0.2;
 	
 	double maxArea = 0;
@@ -87,10 +87,16 @@ public class PixyCrate {
 			else if(pkt.x > CENTER_POSITION - CENTER_THRESHOLD || pkt.x < CENTER_POSITION + CENTER_THRESHOLD){
 				System.out.println("Object is in center");
 
+				if(pkt.area < .15){
 				//	Drives forward
-				driveTrain.arcadeDrive(DRIVE_SPEED,0, false);
+				driveTrain.arcadeDrive(DRIVE_SPEED, 0, false);
 				Timer.delay(0.05);
-
+				}
+				else{
+					driveTrain.arcadeDrive(0, 0, false);
+					Timer.delay(0.05);
+				}
+				System.out.println("Area:    " + pkt.area);
 				System.out.println("XPos:  " + pkt.x + "  YPos:   " + pkt.y);
 
 			}
@@ -100,6 +106,9 @@ public class PixyCrate {
 		else if(pkt.x == -1){
 			driveTrain.arcadeDrive(0, 0, false);
 			System.out.println("Data does not exist");
+		}
+		else{
+			System.out.println("Unknown exception");
 		}
 
 	}
