@@ -164,7 +164,13 @@ public abstract class Grabber implements MotorSafety {
 			driveTrain.tankDrive(0, 0, false);
 			break;
 		case kIntake:
+
+			if(armSwitch.get()){
+				driveTrain.tankDrive(0, 0, false);
+			}
+			else{
 			driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
+			}
 			break;
 		case kDeposit:
 			driveTrain.tankDrive(-cubeLaunchSpeed, -cubeLaunchSpeed, false);

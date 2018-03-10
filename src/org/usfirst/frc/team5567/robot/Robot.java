@@ -34,7 +34,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends IterativeRobot implements PIDOutput {
 	//	global variables
 
-	//	Sets the type of grabber where true is motor and false is Solonoid
+	//	Declaring DigitalInput for the IR break beam sensor used to detect cubes
+	final DigitalInput boxTrip;
+	
+	//	Sets the type of grabber where true is motor and false is Solenoid
 	private static final boolean ARM_TYPE = true;
 	//  Declaring strings for the auton based on FMS data
 	String fmsAutoSelected;
@@ -157,9 +160,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		backRightMotor = new Spark(3);
 		//	Set on test robot, false for comp bot
 		frontRightMotor.setInverted(true);
-		// Editted for Spark MotorController  Unsure of Comp robot
+		// Edited for Spark MotorController  Unsure of Comp robot
 		backLeftMotor.setInverted(true);
 
+		//	Instantiating IR break beam sensor 
+		boxTrip = new DigitalInput(3);
+		
 		//	Comp motor Controllers
 		/*//  Instantiating Speed Controllers and assigned ports
 		frontLeftMotor = new VictorSP(0);
@@ -849,14 +855,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
 
 		//			TODO More commented out crate arm closed and open
-		//  If armFlag is false and the A button on the copilot controller is pressed, close the crate arm
-		if(copilotController.getAButtonReleased()){
-			grabberArm.setGrabberArm(ArmState.kClosed);
-		}
-
-		//  If B button on the copilot controller is pressed, open the crate arm
 		if(copilotController.getBButtonReleased()){
 			grabberArm.setGrabberArm(ArmState.kOpen);
+		}
+		
+		else if(boxTrip.get() == false) {
+			grabberArm.setGrabberArm(ArmState.kClosed);
+		}
+		
+		else if(copilotController.getAButtonReleased()){
+			grabberArm.setGrabberArm(ArmState.kClosed);
 		}
 
 		//	Raises the arm if the right bumper is pressed
