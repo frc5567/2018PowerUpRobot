@@ -389,20 +389,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-//					StraightDriveAngle(56, 0.8, -60);
-					StraightDriveAngle(66, 0.8, -15);
+					StraightDriveAngle(56, 0.8, -60);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-//				StraightDriveAngle(25, 0.3, 0);
-				StraightDriveAngle(25, 0.3, -15);
+				StraightDriveAngle(25, 0.3, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-//					StraightDriveAngle(28, 0.3, 0);
-					StraightDriveAngle(28, 0.3, -15);
+					StraightDriveAngle(28, 0.3, 0);
 				System.out.println(leftEncoder.getDistance());
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
