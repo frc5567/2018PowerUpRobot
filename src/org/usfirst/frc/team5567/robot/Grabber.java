@@ -101,11 +101,7 @@ public abstract class Grabber implements MotorSafety {
 	 * @param rightMotorArm Port number for the PWMTalonSRX controlling the right arm.
 	 * @param forwardPortLeft Port number for moving the left Double Solenoid forwards.
 	 * @param backwardPortLeft Port number for moving the left Double Solenoid backwards.
-	 * @param forwardPortRight Port number for moving the right Double Solenoid forwards. DONT USE
-	 * @param backwardPortRight Port number for moving the right Double Solenoid backwards. DONT USE
-	 * @param forwardPortArm Port number for moving the vertical Double Solenoid up. DONT USE
-	 * @param backwardPortArm Port number for moving the vertical Double Solenoid down. DONT USE
-	 * @param raiseArmMotorPort Port number for the raise arm motor
+	 * @param raiseArmMotorPort Port number for the raise arm motor UNUSED
 	 */
 
 	public Grabber(int leftMotorArm, int rightMotorArm, int forwardPortLeft, int backwardPortLeft){
@@ -178,19 +174,22 @@ public abstract class Grabber implements MotorSafety {
 		}
 	}
 
-	/*	*//**
+	/*
 	 * A method for intaking cubes
 	 * @param intakeSpeed The speed at which we want cubes to be taken in
-	 *//*
+	 */
+	/*
 	public void cubeIntake(double intakeSpeed){
 		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 	}
 
-	  *//**
+	  */
+	  /**
 	  * A method for launching cubes
 	  * Launch speed is inverted in class to cause the motors to spin the reverse of intake
 	  * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
-	  *//*
+	  */
+	/*
 	public void launchCube(double launchSpeed){
 		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}

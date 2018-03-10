@@ -33,7 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 //  This is the main robot that we use in competition.
 public class Robot extends IterativeRobot implements PIDOutput {
 	//	global variables
-
+	
 	//	Declaring DigitalInput for the IR break beam sensor used to detect cubes
 	final DigitalInput boxTrip;
 	
@@ -140,7 +140,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	private static final String kStraightAuton = "Straight Auton";
 	private String m_dashboardAutoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
-
+	
+ 
 	//	Instantiates a value that should equal 90 degrees on the encoder that we will use to break a while loop
 	final int kInitAngle = -130;
 
@@ -149,7 +150,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	DigitalInput breakBeam;
 
-	double matchTimer = 0.0; //	TODO
+	double matchTimer = 0.0;
 	/*
 	 * This is our robot's constructor.
 	 */
@@ -228,6 +229,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		SmartDashboard.putNumber("KI", turnController.getI());
 		SmartDashboard.putNumber("KD", turnController.getD());
 		SmartDashboard.putNumber("Speed", testSpd);
+		
+		SmartDashboard.putBoolean("Pilot Control", manualGrabberControl);
 
 		cubeLaunchSpeed = 0.8;
 		cubeIntakeSpeed = 0.7;
@@ -352,20 +355,24 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		case kStraightAuton:
 			switch(fmsAutoSelected) {
 			case L:	//	TODO: This is broken, so it should be fixed at some point (soon)
+		//	The 'fix' I put in is changing the distances and angle from straight ahead to match the right side 
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(56, 0.8, -60);
+//					StraightDriveAngle(56, 0.8, -60);
+					StraightDriveAngle(66, 0.8, -15);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-				StraightDriveAngle(25, 0.3, 0);
+//				StraightDriveAngle(25, 0.3, 0);
+				StraightDriveAngle(25, 0.3, -15);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(28, 0.3, 0);
+//					StraightDriveAngle(28, 0.3, 0);
+					StraightDriveAngle(28, 0.3, -15);
 				System.out.println(leftEncoder.getDistance());
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
@@ -382,7 +389,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				//	TODO
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -412,7 +418,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				case(2):
 					StraightDriveAngle(28, 0.3, 15);
 				System.out.println(leftEncoder.getDistance());
-				//	TODO
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -428,7 +433,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				//	TODO
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
 					matchTimer = Timer.getFPGATimestamp();
@@ -720,7 +724,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 * Method for driving straight in auton
 	 * @param targetDistance The distance you want to travel (in inches)
 	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-	 * @param driveAngle Angle thaat is used as "zero" when going straight after turning
+	 * @param driveAngle Angle that is used as "zero" when going straight after turning
 	 */
 	public void StraightDriveAngle(double targetDistance, double speed, double driveAngle){
 
