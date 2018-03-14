@@ -279,7 +279,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addDefault("No Move Auton", kStraightLineAuton);
 		m_chooser.addObject("Right Position", kRightPosition);
 		m_chooser.addObject("Left Position", kLeftPosition);
-		m_chooser.addObject("Straight Auton", kCenterAuton);
+		m_chooser.addObject("Center Position", kCenterAuton);
 
 		SmartDashboard.putBoolean("Pilot Control", manualGrabberControl);
 		SmartDashboard.putData("Auto choices", m_chooser);
@@ -336,7 +336,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			fmsAutoSelected = Default;
 			System.out.println("Default Auto Selected");
 		}
-		m_dashboardAutoSelected = kCenterAuton;
+		m_dashboardAutoSelected = m_chooser.getSelected();
 		System.out.println("Auto selected: " + m_dashboardAutoSelected);
 
 		// Sets initial position to the raised position
