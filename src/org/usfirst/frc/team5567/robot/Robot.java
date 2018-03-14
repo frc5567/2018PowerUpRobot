@@ -1119,7 +1119,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		// Raises the arm if the right bumper is pressed
 		if (copilotController.getBumper(Hand.kRight)) {
-			grabberArm.setAngleArm(AngleState.kRaised, 0.7);
+			grabberArm.setAngleArm(AngleState.kInitial, 0.7);
 		}
 
 		// Lowers arm if the left bumper is pressed

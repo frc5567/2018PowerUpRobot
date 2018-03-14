@@ -42,35 +42,34 @@ public class CrateGrabberMotor extends Grabber {
 			}
 			break;
 			
-			case kRaised:
-				if(armEncoder.getRaw() < armEncRaised+3) {
-					raiseArmMotor.set(speed);
-					System.out.println("armEnc:\t"+armEncoder.getRaw());
-//					Robot.autoCase++;
-				}
-				else if(armEncoder.getRaw() > armEncRaised-3) {
-					raiseArmMotor.set(-speed);
-					System.out.println("armEnc:\t"+armEncoder.getRaw());
-				}
-				else {
-					raiseArmMotor.set(0);
-					System.out.println("armEnc:\t"+armEncoder.getRaw());
-				}
-				break;
-			case kLowered:
-				
-				if(armEncoder.getRaw() >= kArmEncLower) {
-					raiseArmMotor.set(0);
-					System.out.println("armEnc:\t"+armEncoder.getRaw());
-//					Robot.autoCase++;
-				}
-				else {
-					raiseArmMotor.set(speed);
-					System.out.println("armEnc:\t"+armEncoder.getRaw());
-				}
-				System.out.println("Arm Encoder Value \t" + armEncoder.getRaw());
-				break;
+		case kRaised:
+			if(armEncoder.getRaw() < armEncRaised+3) {
+				raiseArmMotor.set(speed);
+				System.out.println("armEnc:\t"+armEncoder.getRaw());
+				//					Robot.autoCase++;
 			}
+			else if(armEncoder.getRaw() > armEncRaised-3) {
+				raiseArmMotor.set(-speed);
+				System.out.println("armEnc:\t"+armEncoder.getRaw());
+			}
+			else {
+				raiseArmMotor.set(0);
+				System.out.println("armEnc:\t"+armEncoder.getRaw());
+			}
+			break;
+		case kLowered:
 
+			if(armEncoder.getRaw() >= kArmEncLower) {
+				raiseArmMotor.set(0);
+				System.out.println("armEnc:\t"+armEncoder.getRaw());
+				//					Robot.autoCase++;
+			}
+			else {
+				raiseArmMotor.set(speed);
+				System.out.println("armEnc:\t"+armEncoder.getRaw());
+			}
+			System.out.println("Arm Encoder Value \t" + armEncoder.getRaw());
+			break;
 		}
 	}
+}
