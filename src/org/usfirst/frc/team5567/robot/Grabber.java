@@ -20,6 +20,9 @@ public abstract class Grabber implements MotorSafety {
 	final double kArmEncIntBack = -180;
 	final double kArmEncLower = 0;
 	
+	DigitalInput outerBreakBeam;
+	DigitalInput innerBreakBeam;
+	
 	//	Declares Enum for state of pneumatic arm for opening and closing CrateGrabber Arm
 	public enum ArmState {
 		kOpen(0),
@@ -69,6 +72,18 @@ public abstract class Grabber implements MotorSafety {
 
 		MotorState(int motorValue) {
 			this.motorValue = motorValue;
+		}
+	}
+	
+	// Enum for whether we are working in automatic or manual cube intake
+	public enum IntakeMode {
+		kAutomatic(0),
+		kManual(1);
+		
+		private int intakeMode;
+		
+		IntakeMode(int inMode) {
+			this.intakeMode = inMode;
 		}
 	}
 
@@ -121,8 +136,9 @@ public abstract class Grabber implements MotorSafety {
 		//dSolRight = new DoubleSolenoid(forwardPortRight, backwardPortRight);
 		//dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
 
-		//	Instantiating armswitch
-		armSwitch = new DigitalInput(0);
+		// InfraRed Breakbeam sensors for cube grabber
+		outerBreakBeam = new DigitalInput(10); // Port 0 on MXP breakout on NavX IMU
+		innerBreakBeam = new DigitalInput(11); // Port 1 on MXP breakout on NavX IMU
 
 		//	Instantiates encoder for monitoring/controlling arm
 		armEncoder = new Encoder(2, 1, false, EncodingType.k1X);
@@ -172,19 +188,42 @@ public abstract class Grabber implements MotorSafety {
 		}
 	}
 
-	/*	*//**
+	/*
 	 * A method for intaking cubes
-	 * @param intakeSpeed The speed at which we want cubes to be taken in
-	 *//*
-	public void cubeIntake(double intakeSpeed){
-		driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
+	 * @param currentIntakeMode Cube intake mode of operation -- auto or manual
+	 * @param intakeSpeed Cube intake speed
+	 */
+	public boolean cubeIntake(IntakeMode currentIntakeMode, double intakeSpeed){
+		boolean gotCube = false;
+		if (currentIntakeMode == IntakeMode.kAutomatic){
+			// Check IR Break Beams
+			// if outer beam is broken, make sure grabber arm closes and engage motors
+			if (!outerBreakBeam.get()) {
+				this.setGrabberArm(ArmState.kClosed);
+				this.setMotorArm(MotorState.kIntake, intakeSpeed, 0.0);
+				
+			} else {// if outer beam is NOT broken, make sure grabber arm is open and motors off
+				this.setGrabberArm(ArmState.kOpen);
+				this.setMotorArm(MotorState.kOff, (intakeSpeed / 2), 0.0);			
+			}
+			
+			// if inner beam is broken, make sure to stop intake motors.
+			if (!innerBreakBeam.get()) {
+				// Try to hold in the cube -- set this to 0.0 if we have issues with it.
+				this.setMotorArm(MotorState.kOff, 0.1, 0.0);	
+				gotCube = true;
+			}
+		} else {
+			this.setMotorArm(MotorState.kIntake, intakeSpeed, 0.0);
+		}
+		return gotCube;
 	}
 
-	  *//**
+	  /**
 	  * A method for launching cubes
 	  * Launch speed is inverted in class to cause the motors to spin the reverse of intake
 	  * @param launchSpeed The speed at which we want the robot to launch cubes, 0 to 1
-	  *//*
+	  */
 	public void launchCube(double launchSpeed){
 		driveTrain.tankDrive(-launchSpeed, -launchSpeed, false);
 	}
@@ -192,7 +231,7 @@ public abstract class Grabber implements MotorSafety {
 	//	Stop intake
 	public void stopIntake(){
 		driveTrain.tankDrive(0, 0, false);
-	}*/
+	}
 
 	//	Method for detecting when a cube is in our grasp
 	public boolean detectCube(){

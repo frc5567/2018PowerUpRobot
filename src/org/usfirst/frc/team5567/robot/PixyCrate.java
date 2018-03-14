@@ -13,7 +13,7 @@ public class PixyCrate {
 	public static final double CENTER_POSITION = 0.5;
 	public static final double CENTER_THRESHOLD = 0.075;
 	public static final double ROTATION_SPEED = 0.25;
-	public static final double DRIVE_SPEED = 0.2;
+	public static final double DRIVE_SPEED = 0.5;
 	
 	double maxArea = 0;
 	
@@ -29,7 +29,7 @@ public class PixyCrate {
 	 * 	This method will turn the robot to face the object the PixyCam has locked on to and drive towards it
 	 * 	The Drive Train code is commented out for testing purposes
 	 */
-	public void centerOnObject(DifferentialDrive driveTrain){
+	public boolean centerOnObject(DifferentialDrive driveTrain){
 
 		System.out.println("Entered center on object");
 		pkt = i2c.getPixy();
@@ -46,7 +46,9 @@ public class PixyCrate {
 		//	Stops the robot if the target is too close
 		if(maxArea > STOP_AREA){
 			driveTrain.arcadeDrive(0, 0, false);
-			return;
+			firstPixyFlag = true;
+			System.out.println("Exiting Center on object, object too big");
+			return true;
 		}
 		System.out.println(maxArea);
 
@@ -106,10 +108,13 @@ public class PixyCrate {
 		else if(pkt.x == -1){
 			driveTrain.arcadeDrive(0, 0, false);
 			System.out.println("Data does not exist");
+			return false;
 		}
 		else{
 			System.out.println("Unknown exception");
+			return false;
 		}
+		return true;
 
 	}
 
