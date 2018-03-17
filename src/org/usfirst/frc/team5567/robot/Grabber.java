@@ -137,8 +137,8 @@ public abstract class Grabber implements MotorSafety {
 		//dSolArm = new DoubleSolenoid(forwardPortArm, backwardPortArm);
 
 		// InfraRed Breakbeam sensors for cube grabber
-		outerBreakBeam = new DigitalInput(10); // Port 0 on MXP breakout on NavX IMU
-		innerBreakBeam = new DigitalInput(11); // Port 1 on MXP breakout on NavX IMU
+		outerBreakBeam = new DigitalInput(11); // Port 1 on MXP breakout on NavX IMU
+		innerBreakBeam = new DigitalInput(10); // Port 0 on MXP breakout on NavX IMU
 
 		//	Instantiates encoder for monitoring/controlling arm
 		armEncoder = new Encoder(2, 1, false, EncodingType.k1X);
@@ -183,7 +183,7 @@ public abstract class Grabber implements MotorSafety {
 			driveTrain.tankDrive(intakeSpeed, intakeSpeed, false);
 			break;
 		case kDeposit:
-			driveTrain.tankDrive(-cubeLaunchSpeed, -cubeLaunchSpeed, false);
+			driveTrain.tankDrive(.75*(-cubeLaunchSpeed), .75*(-cubeLaunchSpeed), false);
 			break;
 		}
 	}

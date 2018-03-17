@@ -14,9 +14,9 @@ public class PixyCrate {
 	public static final double CENTER_THRESHOLD = 0.075;
 	public static final double ROTATION_SPEED = 0.25;
 	public static final double DRIVE_SPEED = 0.5;
-	
+
 	double maxArea = 0;
-	
+
 	//	Used to determine if it is the first time through so it avoids a NullPointerException
 	boolean firstPixyFlag = true;
 	//	Sets up the I2C interface
@@ -24,6 +24,65 @@ public class PixyCrate {
 
 	//	Creates a Pixy packet to transfer Pixy data
 	PixyPacket pkt = i2c.getPixy();
+
+	/**
+	 * 	A method for seeing and printing where the object is
+	 * @return whether the robot could see an object
+	 */
+	public boolean getObjectPosition(){
+		System.out.println("Entered getObjectPosition");
+		pkt = i2c.getPixy();
+
+
+		//		If data exists, proceed (-1 represents the absence of data)
+		if(pkt.x != -1){
+
+			System.out.println("Data Exists");
+
+			//	While the object is not center
+			if(pkt.x < CENTER_POSITION - CENTER_THRESHOLD || pkt.x > CENTER_POSITION + CENTER_THRESHOLD){
+				System.out.println("Object is not in center");
+
+				//	If the Pixy sees the object on the left side of robot, turn left
+				if(pkt.x < CENTER_POSITION - CENTER_THRESHOLD){
+					System.out.println("Object on left");
+					Timer.delay(0.05);
+				}
+
+				//	If the Pixy sees the object on the right side of robot, turn right
+				else if(pkt.x > CENTER_POSITION + CENTER_THRESHOLD){
+					System.out.println("Object on right");
+				}
+
+				//	Refresh the data
+				pkt = i2c.getPixy();
+
+				//	Print the data for reference
+				System.out.println("XPos: " + pkt.x + "  YPos:  " + pkt.y);
+
+			}
+
+			//	If the object is in the center
+			else if(pkt.x > CENTER_POSITION - CENTER_THRESHOLD || pkt.x < CENTER_POSITION + CENTER_THRESHOLD){
+				System.out.println("Object is in center");
+				System.out.println("Area:    " + pkt.area);
+				System.out.println("XPos:  " + pkt.x + "  YPos:   " + pkt.y);
+
+			}
+		}
+
+		//  Stops the robot if data is lost or does not exist
+		else if(pkt.x == -1){
+			System.out.println("Data does not exist");
+			return false;
+		}
+		else{
+			System.out.println("Unknown exception");
+			return false;
+		}
+		return true;
+
+	}
 
 	/*
 	 * 	This method will turn the robot to face the object the PixyCam has locked on to and drive towards it
@@ -90,9 +149,9 @@ public class PixyCrate {
 				System.out.println("Object is in center");
 
 				if(pkt.area < .15){
-				//	Drives forward
-				driveTrain.arcadeDrive(DRIVE_SPEED, 0, false);
-				Timer.delay(0.05);
+					//	Drives forward
+					driveTrain.arcadeDrive(DRIVE_SPEED, 0, false);
+					Timer.delay(0.05);
 				}
 				else{
 					driveTrain.arcadeDrive(0, 0, false);
