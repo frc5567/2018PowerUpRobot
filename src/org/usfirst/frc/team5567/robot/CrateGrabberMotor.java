@@ -18,7 +18,7 @@ public class CrateGrabberMotor extends Grabber {
 		super(leftMotorArm, rightMotorArm, forwardPortLeft, backwardPortLeft);
 		raiseArmMotor = new VictorSP(raiseArmMotorPort);
 		//	Changed Encoder Direction for test bot only
-		armEncoder.setReverseDirection(true);
+		armEncoder.setReverseDirection(false);
 		raiseArmMotor.setInverted(false);
 	}
 	
