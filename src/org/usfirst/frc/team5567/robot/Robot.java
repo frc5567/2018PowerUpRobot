@@ -4,6 +4,7 @@ import org.usfirst.frc.team5567.robot.Grabber.AngleState;
 import org.usfirst.frc.team5567.robot.Grabber.ArmState;
 import org.usfirst.frc.team5567.robot.Grabber.MotorState;
 import org.usfirst.frc.team5567.robot.RobotClimber.ClimbState;
+import org.usfirst.frc.team5567.robot.AutoDrive;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -32,6 +33,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //  This is the main robot that we use in competition.
 public class Robot extends IterativeRobot implements PIDOutput {
+	
+	AutoDrive autoDrive;
 	
 //	Declares Enum for changing the control method for grabber
 	public enum GrabberMode {
@@ -335,39 +338,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		lDistance = 0;
 		rDistance = 0;
 
-		//  Gets the string from the FMS that shows which side of the switch and scale
-		//  This is mainly a failsafe if the string doesn't get to the robot
-		//  This is the failsafe so the fatal error doesn't kill the robot
-		try {
-			gameData = DriverStation.getInstance().getGameSpecificMessage();
-		}
-		catch (RuntimeException ex ) {
-			DriverStation.reportError("Error retrieveing switch and scale data from FMS:  " + ex.getMessage(), true);
-			fmsAutoSelected = Default;
-		}
-
 		//	Activates safety for the drive train
 		driveTrain.setSafetyEnabled(true);
 
 		//	Zeros the autocase
 		autoCase = 0;
 
-		//	Gets FMS data, chooses Auto case based on it
-		if(gameData.charAt(0) == 'L') {
-			//	Sets robot to use code to go left
-			fmsAutoSelected = L;
-			System.out.println("Left Auto Selected");
-		}
-		else if(gameData.charAt(0) == 'R') {
-			//	Sets robot to use code to go right
-			fmsAutoSelected = R;
-			System.out.println("Right Auto Selected");
-		}
-		else {
-			//	Sets robot to use default code
-			fmsAutoSelected = Default;
-			System.out.println("Default Auto Selected");
-		}
 		m_dashboardAutoSelected = kStraightAuton;
 		System.out.println("Auto selected: " + m_dashboardAutoSelected);
 
@@ -389,17 +365,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(56, 0.8, -60);
+					autoDrive.StraightDriveAngle(56, 0.8, -60);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-				StraightDriveAngle(25, 0.3, 0);
+				autoDrive.StraightDriveAngle(25, 0.3, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(28, 0.3, 0);
+					autoDrive.StraightDriveAngle(28, 0.3, 0);
 				System.out.println(leftEncoder.getDistance());
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
@@ -412,7 +388,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(28, 0.3, 0);
+					autoDrive.StraightDriveAngle(28, 0.3, 0);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
@@ -433,17 +409,17 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(66, 0.8, 15);
+					autoDrive.StraightDriveAngle(66, 0.8, 15);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
 					System.out.println(leftEncoder.getDistance());
-				StraightDriveAngle(25, 0.3, 15);
+				autoDrive.StraightDriveAngle(25, 0.3, 15);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(28, 0.3, 15);
+					autoDrive.StraightDriveAngle(28, 0.3, 15);
 				System.out.println(leftEncoder.getDistance());
 				System.out.println(Timer.getFPGATimestamp());
 				if(matchTimer == 0){
@@ -456,7 +432,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(28, 0.3, 15);
+					autoDrive.StraightDriveAngle(28, 0.3, 15);
 				System.out.println(leftEncoder.getDistance());
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
@@ -481,11 +457,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(204, 0.8, 0);
+					autoDrive.StraightDriveAngle(204, 0.8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(-90);
+					autoDrive.RotateDrive(-90);
 				if(ahrs.getAngle() > -95 && ahrs.getAngle() < -85) {
 					autoCase++;
 					firstFlag = true;
@@ -493,11 +469,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(194, 0.8, -90);
+					autoDrive.StraightDriveAngle(194, 0.8, -90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
-					RotateDrive(135);
+					autoDrive.RotateDrive(135);
 				if(ahrs.getAngle() > -230 && ahrs.getAngle() < -220) {
 					autoCase++;
 					firstFlag = true;
@@ -505,7 +481,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(30, 0.8, 135);
+					autoDrive.StraightDriveAngle(30, 0.8, 135);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(5):
@@ -559,11 +535,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(/*168*/ 130, 0.6, 0);
+					autoDrive.StraightDriveAngle(/*168*/ 130, 0.6, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(-90);
+					autoDrive.RotateDrive(-90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				if(ahrs.getAngle() > -95 && ahrs.getAngle() < -85) {
 					autoCase++;
@@ -571,21 +547,21 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				}
 				break;
 				case(2):
-					StraightDriveAngle(10, 0.4, -90);
+					autoDrive.StraightDriveAngle(10, 0.4, -90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(25, 0.25, -90);
+					autoDrive.StraightDriveAngle(25, 0.25, -90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
 				autoCase++;
 				break;
 				case(4):	//	Cube delivered, drive away
-					StraightDriveAngle(-40, -.5, -30);					
+					autoDrive.StraightDriveAngle(-40, -.5, -30);					
 				break;
 				case(5):	//	Drive towards the center
-					StraightDriveAngle(40, .5, -120);
+					autoDrive.StraightDriveAngle(40, .5, -120);
 				break;
 				default:
 					break;
@@ -606,19 +582,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				switch(autoCase){
 				//  Drives straight
 				case(0):
-					StraightDriveAngle(130/*210*/, .8, 0);
+					autoDrive.StraightDriveAngle(130/*210*/, .8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(90);
+					autoDrive.RotateDrive(90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(25, 0.6, 90);
+					autoDrive.StraightDriveAngle(25, 0.6, 90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(3):
-					StraightDriveAngle(25, 0.25, 90);
+					autoDrive.StraightDriveAngle(25, 0.25, 90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
 				Timer.delay(1.5);
@@ -635,31 +611,31 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				//				Left auto Code here
 				switch(autoCase){
 				case(0):
-					StraightDriveAngle(198, 0.8, 0);
+					autoDrive.StraightDriveAngle(198, 0.8, 0);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(1):
-					RotateDrive(90);
+					autoDrive.RotateDrive(90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(2):
-					StraightDriveAngle(219, 0.8, 90);
+					autoDrive.StraightDriveAngle(219, 0.8, 90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(3):
-					RotateDrive(180);
+					autoDrive.RotateDrive(180);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(4):
-					StraightDriveAngle(52, 0.8, 180);
+					autoDrive.StraightDriveAngle(52, 0.8, 180);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(5):
-					RotateDrive(-90);
+					autoDrive.RotateDrive(-90);
 				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
 				break;
 				case(6):
-					StraightDriveAngle(4, 0.8, -90);
+					autoDrive.StraightDriveAngle(4, 0.8, -90);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				break;
 				case(7):
@@ -687,172 +663,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 
 		Timer.delay(0.05);		// wait for a motor update time
-	}
-
-	/**
-	 * Method for driving straight in auton
-	 * @param targetDistance The distance you want to travel (in inches)
-	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-	 */
-	public void StraightDrive(double targetDistance, double speed){
-
-		//	Resets the encoders and the distance traveled the first time this enters
-		if(firstFlag){
-			leftEncoder.reset();
-			rightEncoder.reset();
-
-			rDistance = 0;
-			lDistance = 0;
-
-			straightController.reset();
-			straightController.enable();
-
-			System.out.println("resetting");
-
-			// Sets the Setpoint so the robot travels straight
-			straightController.setSetpoint(0);
-
-			firstFlag = false;
-		}
-
-		//	Enables the turn controller if it is not already
-		if (!straightController.isEnabled()) {
-			rotateToAngleRate = 0;
-			straightController.enable();
-		}
-
-		//	Gets the total distance from the encoders
-		//	This encoder must be inverted so that we get proper values
-		rDistance = rightEncoder.getDistance();
-		lDistance = leftEncoder.getDistance();
-
-		//	Prints distance from encoders
-		//		System.out.println(rDistance + "   " + lDistance);
-
-		//	Gets rate of rotation from PID
-		rotateToAngleRate = straightController.get();
-
-		//	Stops robot if target distance was reached and moves to the next case
-		if(targetDistance <= lDistance || targetDistance <= rDistance){
-			driveTrain.arcadeDrive(0, 0, false);
-			autoCase++;
-			firstFlag = true;
-			rDistance = 0;
-			lDistance = 0;
-		}
-
-		//	Drives straight forward if target is not reached
-		else{
-			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
-		}
-	}
-
-	/**
-	 * Method for driving straight in auton
-	 * @param targetDistance The distance you want to travel (in inches)
-	 * @param speed The speed that you want the robot to travel at (range is -1 to 1)
-	 * @param driveAngle Angle that is used as "zero" when going straight after turning
-	 */
-	public void StraightDriveAngle(double targetDistance, double speed, double driveAngle){
-
-		//	Resets the encoders and the distance traveled the first time this enters
-		if(firstFlag){
-			leftEncoder.reset();
-			rightEncoder.reset();
-
-			rDistance = 0;
-			lDistance = 0;
-
-			System.out.println("resetting");
-
-			straightController.reset();
-			straightController.enable();
-
-			// Sets the Setpoint so the robot travels straight
-			straightController.setSetpoint(driveAngle);
-
-			firstFlag = false;
-		}
-
-		//	Enables the turn controller if it is not already
-		if (!straightController.isEnabled()) {
-			rotateToAngleRate = 0;
-			straightController.enable();
-		}
-
-		//	Gets the total distance from the encoders
-		//	This encoder must be inverted so that we get proper values
-		rDistance = rightEncoder.getDistance();
-		lDistance = leftEncoder.getDistance();
-
-		//	Prints distance from encoders
-		//		System.out.println("R:[" +rDistance+ "][" +rightEncoder.getRaw()+ "] L:[" +lDistance+ "][" +leftEncoder.getRaw()+ "]");
-
-		//	Gets rate of rotation from PID
-		rotateToAngleRate = straightController.get();
-
-		//	Stops robot if target distance was reached and moves to the next case
-		if(targetDistance <= lDistance /*|| targetDistance <= rDistance*/){
-			driveTrain.arcadeDrive(0, 0, false);
-
-			turnController.reset();
-			System.out.println("here");
-			autoCase++;
-			firstFlag = true;
-			rDistance = 0;
-			lDistance = 0;
-		}
-
-		//	Drives straight forward if target is not reached
-		else{
-			driveTrain.arcadeDrive(speed, rotateToAngleRate, false);
-		}
-	}
-
-	/**
-	 * Method for rotating into the target angle in auton
-	 * @param targetAngle The angle we want to turn to (in degrees)
-	 */
-	public void RotateDrive(double targetAngle){
-		//  If this is the first time entering this method, sets target angle
-		if(firstFlag){
-			turnController.reset();
-			rotateCount = 0;
-			turnController.setSetpoint(targetAngle);
-
-			turnController.reset();
-			turnController.enable();
-
-			firstFlag = false;
-		}
-
-		//	 If the turn controller is not enabled, enable turn controller
-		if (!turnController.isEnabled()) {
-			//	rotateRate = 0; // This value will be updated in the pidWrite() method.
-			turnController.enable();
-		}
-
-		//	Sets the speed the the robot rotates at from the PID
-		rotateToAngleRate = turnController.get();
-
-		//	Prints setpoint and rotation rate
-		//		System.out.println(turnController.getSetpoint());
-		//		System.out.println(rotateToAngleRate);
-		//		System.out.println(ahrs.getAngle());
-
-		/*if(-rotateThreshold < rotateToAngleRate && rotateToAngleRate < rotateThreshold) {
-			rotateCount++;
-		}
-
-		//	If the PID has slowed down to a certain point, exit the case
-		if((rotateToAngleRate < rotateThreshold && rotateToAngleRate > -rotateThreshold) && rotateCount > 4){
-			//	If we have, stop and return true
-			autoCase++;
-			firstFlag = true;
-		}*/
-
-		//	Makes the robot turn to angle
-		driveTrain.arcadeDrive(0, rotateToAngleRate, false);
 	}
 
 
