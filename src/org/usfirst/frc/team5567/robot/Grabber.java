@@ -195,7 +195,9 @@ public abstract class Grabber implements MotorSafety {
 	 */
 	public boolean cubeIntake(IntakeMode currentIntakeMode, double intakeSpeed){
 		boolean gotCube = false;
-		if (currentIntakeMode == IntakeMode.kAutomatic){
+		
+		//	Puts the grabber in automatic mode only when desired and the grabber is lowered
+		if (currentIntakeMode == IntakeMode.kAutomatic && armEncoder.getRaw() > -15){
 			// Check IR Break Beams
 			// if outer beam is broken, make sure grabber arm closes and engage motors
 			if (!outerBreakBeam.get()) {
@@ -204,17 +206,17 @@ public abstract class Grabber implements MotorSafety {
 				
 			} else {// if outer beam is NOT broken, make sure grabber arm is open and motors off
 				this.setGrabberArm(ArmState.kOpen);
-				this.setMotorArm(MotorState.kOff, (intakeSpeed / 2), 0.0);			
+				this.setMotorArm(MotorState.kIntake, 0.25, 0.0);			
 			}
 			
 			// if inner beam is broken, make sure to stop intake motors.
 			if (!innerBreakBeam.get()) {
 				// Try to hold in the cube -- set this to 0.0 if we have issues with it.
-				this.setMotorArm(MotorState.kOff, 0.1, 0.0);	
+				this.setMotorArm(MotorState.kOff, 0.05, 0.0);	
 				gotCube = true;
 			}
 		} else {
-			this.setMotorArm(MotorState.kIntake, intakeSpeed, 0.0);
+			this.setMotorArm(MotorState.kIntake, 0.05, 0.0);
 		}
 		return gotCube;
 	}
