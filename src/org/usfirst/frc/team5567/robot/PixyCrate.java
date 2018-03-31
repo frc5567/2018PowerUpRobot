@@ -102,14 +102,16 @@ public class PixyCrate {
 		else if(maxArea < pkt.area){
 			maxArea = pkt.area;
 		}
+		
+		//	Commented out to prevent this auto exit
 		//	Stops the robot if the target is too close
-		if(maxArea > STOP_AREA){
+		/*if(maxArea > STOP_AREA){
 			driveTrain.arcadeDrive(0, 0, false);
 			firstPixyFlag = true;
 			System.out.println("Exiting Center on object, object too big");
 			return true;
 		}
-		System.out.println(maxArea);
+		System.out.println(maxArea);*/
 
 
 
@@ -147,16 +149,16 @@ public class PixyCrate {
 			//	If the object is in the center
 			else if(pkt.x > CENTER_POSITION - CENTER_THRESHOLD || pkt.x < CENTER_POSITION + CENTER_THRESHOLD){
 				System.out.println("Object is in center");
-
+/*
 				if(pkt.area < .15){
 					//	Drives forward
-					driveTrain.arcadeDrive(DRIVE_SPEED, 0, false);
+*/					driveTrain.arcadeDrive(DRIVE_SPEED, 0, false);
 					Timer.delay(0.05);
-				}
-				else{
+				//}
+			/*	else{
 					driveTrain.arcadeDrive(0, 0, false);
 					Timer.delay(0.05);
-				}
+				}*/
 				System.out.println("Area:    " + pkt.area);
 				System.out.println("XPos:  " + pkt.x + "  YPos:   " + pkt.y);
 

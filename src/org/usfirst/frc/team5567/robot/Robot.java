@@ -34,6 +34,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends IterativeRobot implements PIDOutput {
 	// global variables
 
+	double capMaxSpeed;
+	
 	double desiredSpeed;
 	final double kMaxDeltaSpeed = 0.1;
 	double currentSpeed;
@@ -146,7 +148,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	private static final String kLeftPosition = "Left Auton";
 	private static final String kStraightLineAuton = "Straight Line Auton";
 	private static final String kCenterAuton = "Center Auton";
-
+	private static final String kPixyAuton = "Pixy Center Auton";
+	
 	// Rotation based on gyro uses this speed. See rotateDrive(double)
 	private static final double kRotateSpeed = 0.28;
 
@@ -236,7 +239,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		SmartDashboard.putNumber("KD", turnController.getD());
 		SmartDashboard.putNumber("Speed", testSpd);
 
-		cubeLaunchSpeed = 1.0;
+		cubeLaunchSpeed = 1;
 		cubeIntakeSpeed = 0.7;
 
 		// Instantiates variables for the auton methods
@@ -260,6 +263,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 		// Test Robot
 		climber = new RobotClimber(6, 7, 0, 1);
+		
+		capMaxSpeed = 0.85;
 
 
 	}
@@ -288,6 +293,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		m_chooser.addObject("Right Position", kRightPosition);
 		m_chooser.addObject("Left Position", kLeftPosition);
 		m_chooser.addObject("Center Position", kCenterAuton);
+		m_chooser.addObject("Center Position Pixy", kPixyAuton);
 
 		SmartDashboard.putBoolean("Pilot Control", manualGrabberControl);
 		SmartDashboard.putData("Auto choices", m_chooser);
@@ -487,7 +493,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						matchTimer = Timer.getFPGATimestamp();
 					}
 				straightDriveAngle(-25, -0.65, -35, false);
-				if ((Timer.getFPGATimestamp() - matchTimer) > 1.25) {
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1.45) {
 					autoCase++;
 					matchTimer = 0;
 					firstFlag = true;
@@ -587,7 +593,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				case (18):
 					straightDriveAngle(28, 0.25, 0, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed-.1, cubeLaunchSpeed-.1);
 				if (matchTimer == 0) {
 					matchTimer = Timer.getFPGATimestamp();
 				}
@@ -791,6 +797,466 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				case (15):
 					straightDriveAngle(28, 0.25, 0, true);
 				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed-.1, cubeLaunchSpeed-.1);
+				if (matchTimer == 0) {
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(16):
+					straightDriveAngle(-28, -0.4, 20, false);
+				if (matchTimer == 0) {
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1.5) {
+					autoCase = 10101010;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				default:
+					grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeIntakeSpeed);
+					straightDriveAngle(0, 0, 0, true);
+					break;
+				}
+			}
+			break;
+			
+		case kPixyAuton:
+			switch (fmsAutoSelected) {
+			case L: // TODO: When this left auton was last tested, the initial path was
+				// not correct and we did not successfully place the cube. 
+				// Need to test/tune prior to use
+				switch (autoCase) {
+				case (0):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(10, .7, 0, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .3) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				//					straightDriveAngle(10, 0.4, 0, true);
+				//				System.out.println(rightEncoder.getDistance());
+				//				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				//				grabberArm.setGrabberArm(ArmState.kClosed);
+				break;
+				case (1):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+
+				if (rotateDrive(-60) || ((Timer.getFPGATimestamp() - matchTimer) > 2)) {
+					autoCase++;
+					firstFlag = true;
+					matchTimer = 0;
+				}
+				//					
+				//					if (rotateDrive(-45)) {
+				//						autoCase++;
+				//					}
+				break;
+				case (2):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(10, .8, -60, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .8) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				//					System.out.println(rightEncoder.getDistance());
+				//				straightDriveAngle(65, 0.8, -60, true);
+				//				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case (3):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+
+				if (rotateDrive(0) || ((Timer.getFPGATimestamp() - matchTimer) > 2)) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				//					System.out.println(rightEncoder.getDistance());
+				//				straightDriveAngle(25, 0.5, -15, true);
+				//				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
+				break;
+				case (4):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(10, .5, 0, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .4) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case (5):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(10, .3, 0, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .8) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(6):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .5) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case (7):
+					straightDriveAngle(28, 0.25, 0, true);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+				if (matchTimer == 0) {
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(8):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				straightDriveAngle(0, 0, 0, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(9):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(-25, -0.65, -35, false);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1.25) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(10):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+
+				if (rotateDrive(0) || ((Timer.getFPGATimestamp() - matchTimer) > 2)) {
+					autoCase++;
+					firstFlag = true;
+					matchTimer = 0;
+				}
+				break;
+				case(11):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				pixyCamera.centerOnObject(driveTrain);
+				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+				grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 2 || !grabberArm.outerBreakBeam.get()) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(12):
+					if(grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed)){
+						autoCase++;
+						matchTimer = 0;
+						firstFlag = true;
+					}
+				break;
+				case(13):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(-25, -0.5, 0, false);
+				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+				grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 0.7) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(14):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.7);
+				if (rotateDrive(-35) || (Timer.getFPGATimestamp() - matchTimer) > 2) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(15):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.4);
+				straightDriveAngle(12, 0.8, -35, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .6) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(16):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.4);
+				straightDriveAngle(12, 0.25, -25, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+
+				case(17):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .5) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case (18):
+					straightDriveAngle(28, 0.25, 0, true);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+				if (matchTimer == 0) {
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case (19):
+					straightDriveAngle(-28, -0.4, 0, false);
+				if (matchTimer == 0) {
+					matchTimer = Timer.getFPGATimestamp();
+				}
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase = 10000;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				default:
+					grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeIntakeSpeed);
+					straightDriveAngle(0, 0, 0, true);
+					break;
+				}
+				break;
+			case R:
+				switch(autoCase){
+				//  Drives straight 
+				case(0):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(60, .8, 30, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .7) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(1):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(60, .5, 30, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .4) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(2):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(60, .25, 10, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(3):
+					if (matchTimer == 0){
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeLaunchSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(4):
+					if (matchTimer == 0){
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(5):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				straightDriveAngle(0, 0, 0, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1.5) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(6):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(-25, -0.65, 30, false);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1.2) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(7):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+
+				if (rotateDrive(0) || ((Timer.getFPGATimestamp() - matchTimer) > 2)) {
+					autoCase++;
+					firstFlag = true;
+					matchTimer = 0;
+				}
+				break;
+				case(8):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				pixyCamera.centerOnObject(driveTrain);
+				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+				grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 2 || !grabberArm.outerBreakBeam.get()) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(9):
+					if(grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed)){
+						autoCase++;
+						matchTimer = 0;
+						firstFlag = true;
+					}
+				break;
+				case(10):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				straightDriveAngle(-25, -0.5, 0, false);
+				grabberArm.setAngleArm(AngleState.kLowered, 0.3);
+				grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 0.7) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(11):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.7);
+				if (rotateDrive(35) || (Timer.getFPGATimestamp() - matchTimer) > 2) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(12):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.4);
+				straightDriveAngle(12, 0.8, 35, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .6) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case(13):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kInitial, 0.4);
+				straightDriveAngle(12, 0.25, 30, true);
+				if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+
+				case(14):
+					if (matchTimer == 0) {
+						matchTimer = Timer.getFPGATimestamp();
+					}
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
+				if ((Timer.getFPGATimestamp() - matchTimer) > .5) {
+					autoCase++;
+					matchTimer = 0;
+					firstFlag = true;
+				}
+				break;
+				case (15):
+					straightDriveAngle(28, 0.25, 0, true);
+				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
 				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
 				if (matchTimer == 0) {
 					matchTimer = Timer.getFPGATimestamp();
@@ -811,7 +1277,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					matchTimer = 0;
 					firstFlag = true;
 				}
-					break;
+				break;
 				default:
 					grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeIntakeSpeed);
 					straightDriveAngle(0, 0, 0, true);
@@ -819,6 +1285,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				}
 			}
 			break;
+			
 		case kRightPosition:
 			switch (fmsAutoSelected) {
 			case L:
@@ -933,65 +1400,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				}
 				break;
 			}
-
-
-			/*switch (autoCase) {
-				// Drives straight
-				case (0):
-					if (matchTimer == 0) {
-						matchTimer = Timer.getFPGATimestamp();
-					}
-				straightDriveAngle(60, .8, 0, true);
-				if ((Timer.getFPGATimestamp() - matchTimer) > 1.3) {
-					straightDriveAngle(0, 0, 0, true);
-					matchTimer = 0;
-					autoCase = 10000;
-					firstFlag = true;
-
-				}
-				straightDriveAngle( 168  130, 0.6, 0, true);
-				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-				break;
-				case (1):
-					grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-				if (rotateDrive(-90)) {
-					autoCase++;
-					firstFlag = true;
-				}
-				break;
-				case (2):
-					straightDriveAngle(10, 0.4, -90, true);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				break;
-				case (3):
-					straightDriveAngle(25, 0.25, -90, true);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				if(matchTimer == 0){
-					matchTimer = Timer.getFPGATimestamp();
-				}
-				if((Timer.getFPGATimestamp() - matchTimer) > 1){
-					autoCase++;
-					matchTimer = 0;
-				}
-				break;
-				case (4): // Cube delivered, drive away
-					straightDriveAngle(-40, -.5, -30, false);
-				break;
-				case (5): // Drive towards the center
-					straightDriveAngle(40, .5, -120, false);
-				break;
-				default:
-					break;
-				}
-				break;
-
-			case Default:
-				// Default auto code here
-				System.out.println("Default case");
-				straightDriveAngle(0, 0, 0, true);
-				break;
-			}*/
 			break;
 
 		case kLeftPosition:
@@ -1083,71 +1491,27 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					break;
 				}
 				break;
-
-				/*switch (autoCase) {
-				// Drives straight
-				case (0):
+			case R:
+				switch(autoCase){
+				case(0):
 					if (matchTimer == 0) {
 						matchTimer = Timer.getFPGATimestamp();
 					}
 				straightDriveAngle(60, .8, 0, true);
+				System.out.println("t:"+Timer.getFPGATimestamp());
 				if ((Timer.getFPGATimestamp() - matchTimer) > 1.3) {
 					straightDriveAngle(0, 0, 0, true);
-					matchTimer = 0;
-					autoCase = 10000;
+					autoCase++;
 					firstFlag = true;
-
-				}	
-					straightDriveAngle(130 210 , .8, 0, true);
-				grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-				break;
-				case (1):
-					grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-				if (rotateDrive(90)) {
-					autoCase++;
 				}
-				break;
-				case (2):
-					straightDriveAngle(25, 0.6, 90, true);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				break;
-				case (3):
-					straightDriveAngle(25, 0.25, 90, true);
-				grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-				grabberArm.setMotorArm(MotorState.kDeposit, 0.8, 0.7);
-				if(matchTimer == 0){
-					matchTimer = Timer.getFPGATimestamp();
-				}
-				if((Timer.getFPGATimestamp() - matchTimer) > 1){
-					autoCase++;
-					matchTimer = 0;
-				}
+				// Put default auto code here
 				break;
 				default:
 					straightDriveAngle(0, 0, 0, true);
-					break;*/
-			}
-			break;
-		case R:
-			switch(autoCase){
-			case(0):
-				if (matchTimer == 0) {
-					matchTimer = Timer.getFPGATimestamp();
+					break;
 				}
-			straightDriveAngle(60, .8, 0, true);
-			System.out.println("t:"+Timer.getFPGATimestamp());
-			if ((Timer.getFPGATimestamp() - matchTimer) > 1.3) {
-				straightDriveAngle(0, 0, 0, true);
-				autoCase++;
-				firstFlag = true;
-			}
-			// Put default auto code here
-			break;
-			default:
-				straightDriveAngle(0, 0, 0, true);
 				break;
 			}
-			break;
 
 		case kStraightLineAuton:
 		default:
@@ -1420,6 +1784,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void speedSetter(double triggerInput){
 		desiredSpeed = triggerInput;
+		
+		// Handle dead-zone and maximum output
+		if(desiredSpeed >= -.1 && desiredSpeed <= .1){
+			desiredSpeed = 0;
+		}
+		else if(desiredSpeed >= capMaxSpeed){
+			desiredSpeed = capMaxSpeed;
+		}
+		else if(desiredSpeed <= -capMaxSpeed){
+			desiredSpeed = -capMaxSpeed;
+		}
+		
+		// Make sure we only change up to kMaxDeltaSpeed at a time
 		if(desiredSpeed > (currentSpeed + kMaxDeltaSpeed)){
 			currentSpeed += kMaxDeltaSpeed;
 		}
@@ -1433,6 +1810,16 @@ public class Robot extends IterativeRobot implements PIDOutput {
 
 	public void rotateSetter(double rotateInput) {
 		desiredRotate = rotateInput;
+		if(desiredRotate >= -.1 && desiredRotate <= .1){
+			desiredRotate = 0;
+		}
+		else if(desiredRotate >= capMaxSpeed){
+			desiredRotate = capMaxSpeed;
+		}
+		else if(desiredRotate <= -capMaxSpeed){
+			desiredRotate = -capMaxSpeed;
+		}
+		
 		if(desiredRotate > (currentRotate + kMaxDeltaSpeed)){
 			currentRotate += kMaxDeltaSpeed;
 		}
@@ -1455,7 +1842,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		/// *
 		// Drives robot based on video game style controls, rTrigger is forward,
 		/// lTrigger is reverse, left stick is turning
-		driveTrain.arcadeDrive(currentSpeed, currentRotate, true);
+		driveTrain.arcadeDrive(currentSpeed, currentRotate, false);
 		// Timer.delay(0.05);
 		//		System.out.println(grabberArm.armEncoder.getRaw());
 		// Sets rdistance to the right encoder value
@@ -1493,6 +1880,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			// Launches cube when left trigger is pressed
 			if (Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > 0.1) {
 				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, copilotController.getTriggerAxis(Hand.kLeft));
+//				System.out.println("Left Trigger:  "+copilotController.getTriggerAxis(Hand.kLeft));
+//				System.out.println("Right Trigger:  "+copilotController.getTriggerAxis(Hand.kRight));
 			}
 			else {			
 				grabberArm.cubeIntake(IntakeMode.kAutomatic, cubeIntakeSpeed);
@@ -1508,15 +1897,23 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			if (copilotController.getBButtonReleased()) {
 				grabberArm.setGrabberArm(ArmState.kOpen);
 			}
-
+//			System.out.println("Left Trigger:  "+copilotController.getTriggerAxis(Hand.kLeft));
+//			System.out.println("Right Trigger:  "+copilotController.getTriggerAxis(Hand.kRight));
 			// If there is not a cube in the grabber and right trigger is pressed turn
 			// motors on to intake cube
-			if (Math.abs(copilotController.getTriggerAxis(Hand.kRight)) > 0.1) {
+			
+			
+			if (Math.abs(copilotController.getTriggerAxis(Hand.kRight)) > 0.2) {
 				grabberArm.setMotorArm(MotorState.kIntake, copilotController.getTriggerAxis(Hand.kRight), cubeLaunchSpeed);
+				capMaxSpeed = 0.5;
 			}
 			// Launches cube when left trigger is pressed
-			else if (Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > 0.1) {
+			else if (Math.abs(copilotController.getTriggerAxis(Hand.kLeft)) > 0.2) {
 				grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, copilotController.getTriggerAxis(Hand.kLeft));
+				capMaxSpeed = 0.5;
+			}
+			else {
+				capMaxSpeed = 0.85;
 			}
 		}
 
@@ -1541,8 +1938,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		// inverted
 
 		//	TODO: make a variable for getMatchTime
-		if(fieldMatchTime < 30){
-			System.out.println("Climer Solenoid Enabled");
+		if(fieldMatchTime < 40){
+//			System.out.println("Climer Solenoid Enabled");
 			if (copilotController.getY(Hand.kLeft) < -0.8) {
 				climber.setClimbSolenoid(ClimbState.kExtend);
 				// System.out.println("here");
@@ -1585,180 +1982,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	}
 	// TODO Bookmark for test periodic
 	public void testPeriodic() {
-		//	USE THIS FOR RR AND LL AUTON
-		switch(autoCase) {
-		case(0):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		straightDriveAngle(60, .8, 0, true);
-		if ((Timer.getFPGATimestamp() - matchTimer) > 1.2) {
-			autoCase++;
-			matchTimer = 0;
-		}
-		break;
-		case(1):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		if(rotateDrive(-90) || (Timer.getFPGATimestamp() - matchTimer) > 1){
-			autoCase++;
-			matchTimer = 0;
-		}
-		break;
-		case(2):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		straightDriveAngle(60, .25, -90, true);
-		if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
-			autoCase++;
-			matchTimer = 0;
-		}
-		break;
-		case(3):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-		if ((Timer.getFPGATimestamp() - matchTimer) > .5) {
-			autoCase++;
-			matchTimer = 0;
-		}
-		break;
-		case(4):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
-		grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-		if ((Timer.getFPGATimestamp() - matchTimer) > .75) {
-			autoCase = 42424242;
-			matchTimer = 0;
-		}
-		break;
-		default:
-			grabberArm.setMotorArm(MotorState.kOff, cubeIntakeSpeed, cubeLaunchSpeed);
-			grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-			straightDriveAngle(0, 0, -90, true);
-			break;
-		}
-		/*		switch(testCase){
-		case(0):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-		if ((Timer.getFPGATimestamp() - matchTimer) > 1) {
-			testCase++;
-			matchTimer = 0;
-			firstFlag = true;
-		}
-			break;
-		case(1):
-			if (matchTimer == 0) {
-				matchTimer = Timer.getFPGATimestamp();
-			}
-		grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-		grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, .4);
-		if ((Timer.getFPGATimestamp() - matchTimer) > .5) {
-			testCase++;
-			matchTimer = 0;
-			firstFlag = true;
-		}
-			break;
-		default:
-			grabberArm.setMotorArm(MotorState.kOff, 0, 0);
-			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
-			break;
-		}*/
-		//	Prints the status of the break beams
-		//		System.out.println("Outer Break Beam:  " + grabberArm.outerBreakBeam.get());
-		//		System.out.println("Inner Break Beam:  " + grabberArm.innerBreakBeam.get());
 
-		/*		if(testTimer.get() < 1 ){
-			//	Grabber arm initial
-			grabberArm.setAngleArm(AngleState.kInitial, 0.3);
-			System.out.println("Grabber set to initial position, Encoder value: /t" + grabberArm.armEncoder.getRaw());
-		}
-		else if(testTimer.get() < 2){
-			//	Grabber arm raised
-			grabberArm.setAngleArm(AngleState.kRaised, 0.3);
-			System.out.println("Grabber set to raised position, Encoder value: /t" + grabberArm.armEncoder.getRaw());
-		}
-		else if(testTimer.get() < 3){
-			//	Grabber arm lower
-			grabberArm.setAngleArm(AngleState.kLowered, 0.3);
-			System.out.println("Grabber set to lowered position, Encoder value: /t" + grabberArm.armEncoder.getRaw());
-		}*/
-		/*		else if(testTimer.get() < 4){
-			//	Grabber arm intake
-			grabberArm.setMotorArm(MotorState.kIntake, cubeIntakeSpeed, cubeLaunchSpeed);
-			System.out.println("Grabber set to intake");
-		}
-		else if(testTimer.get() < 5){
-			//	Grabber arm deposits
-			grabberArm.setMotorArm(MotorState.kDeposit, cubeIntakeSpeed, cubeLaunchSpeed);
-			System.out.println("Grabber set to launch");
-		}*/
-		/*if(testTimer.get() < 1){
-			//	Grabber arm opens
-			grabberArm.setGrabberArm(ArmState.kOpen);
-			System.out.println("Grabber set to open");
-		}
-		else if(testTimer.get() < 2){
-			//	Grabber arm closes
-			grabberArm.setGrabberArm(ArmState.kClosed);
-			System.out.println("Grabber arm set to closed");
-		}*/
-		/*		else if(testTimer.get() < 8){
-			//	Drive forward
-			straightDriveAngle(20, 0.3, 0, true);
-			System.out.println("Driving forwards");
-			System.out.println("Left Encoder:[" + leftEncoder.getDistance() + "]   Right Encoder: [" + rightEncoder.getDistance() + "]");			
-		}
-		else if(testTimer.get() < 9){
-			//	Drive backwards
-			straightDriveAngle(-20, -0.3, 0, false);
-			System.out.println("Left Encoder:[" + leftEncoder.getDistance() + "]   Right Encoder: [" + rightEncoder.getDistance() + "]");			
-			System.out.println("Driving backwards");
-		}
-		else if(testTimer.get() < 10){
-			//	Turn right
-			rotateDrive(90);
-			System.out.println("Left Encoder:[" + leftEncoder.getDistance() + "]   Right Encoder: [" + rightEncoder.getDistance() + "]");
-			System.out.println("Turning right");
-		}
-		else if(testTimer.get() < 11){
-			//	Turn left
-			rotateDrive(0);
-			System.out.println("Left Encoder:[" + leftEncoder.getDistance() + "]   Right Encoder: [" + rightEncoder.getDistance() + "]");
-			System.out.println("Turning left");
-		}*/
-		/*		else if(testTimer.get() < 12){
-			//	Tests pixy
-			pixyCamera.getObjectPosition();
-		}*/
-		/*else if(testTimer.get() < 3) {
-			//	Extends the climbing solenoid
-			System.out.println("Extending climber");
-			climber.setClimbSolenoid(ClimbState.kExtend);
-		}
-		else if(testTimer.get() < 4) {
-			//	Retracts the climbing solenoid
-			System.out.println("Retracting climber");
-			climber.setClimbSolenoid(ClimbState.kRetract);
-		}
-		else if(testTimer.get() < 5) {
-			//	turns off the climbing solenoid (not sure if needed, added just in case)
-			System.out.println("Turning climber off");
-			climber.setClimbSolenoid(ClimbState.kOff);
-		}*/
-
-
-		//		System.out.println("Inner	" + grabberArm.innerBreakBeam.get());
-		//		System.out.println("Outer	" + grabberArm.outerBreakBeam.get());
-		//		System.out.println("Left Encoder:[" + leftEncoder.getDistance() + "]   Right Encoder: [" + rightEncoder.getDistance() + "]");			
+		System.out.println(pixyCamera.getObjectPosition());
 
 	}
 }
